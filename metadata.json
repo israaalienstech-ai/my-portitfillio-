@@ -1,0 +1,6 @@
+{
+  "name": "A Curious World of Ideas — Portfolio",
+  "description": "Bilingual Arabic/English personal portfolio exploring Product Management, Account Management, systems thinking, and creative craft.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
