@@ -1,11 +1,16 @@
 export type Lang = 'en' | 'ar';
-export type ExperienceId = 'fertical' | 'cveeez' | 'xfuse' | 'careercv';
+export type ExperienceId = 'fertical' | 'cveeez' | 'xfuse-lead' | 'xfuse-sell' | 'careercv';
 export type SkillLevel = 'Beginner' | 'Intermediate' | 'Advanced';
 export type SkillGroupId = 'soft' | 'hard' | 'technical' | 'tools';
 
 export interface BilingualText {
   en: string;
   ar: string;
+}
+
+export interface BilingualList {
+  en: string[];
+  ar: string[];
 }
 
 export interface AchievementItem {
@@ -19,23 +24,16 @@ export interface ExperienceStationData {
   softColor: string;
   logoSrc?: string;
   darkLogoBg?: boolean;
-  dates: BilingualText;
-  /** Job title stays ALWAYS in English even in Arabic mode */
+  dates?: string;
+  /** Company name & job title stay ALWAYS in English */
+  company: string;
   role: string;
-  company: BilingualText;
   companySubtitle?: BilingualText;
-  headline: BilingualText;
-  stat?: string;
-  statLabel?: BilingualText;
   achievements: AchievementItem[];
-  tabs?: {
-    lead: AchievementItem[];
-    sell: AchievementItem[];
-  };
-  extraChips?: BilingualText[];
-  challenge: BilingualText;
-  whatIDid: BilingualText;
-  result?: BilingualText;
+  roleOverview: BilingualText;
+  responsibilities: BilingualList;
+  keyAchievements?: BilingualList;
+  skillsDemonstrated: BilingualList;
   bridgeBefore?: BilingualText;
 }
 
@@ -79,7 +77,10 @@ export const SKILL_LEVEL_LABELS: Record<SkillLevel, BilingualText> = {
   Advanced: { en: 'Advanced', ar: 'متقدم' },
 };
 
-export const EXPERIENCE_COLORS: Record<ExperienceId | 'course' | 'every', { hex: string; soft: string; label: BilingualText }> = {
+export const EXPERIENCE_COLORS: Record<
+  ExperienceId | 'course' | 'every',
+  { hex: string; soft: string; label: BilingualText }
+> = {
   fertical: {
     hex: '#A68BC8',
     soft: '#E4D8F0',
@@ -90,7 +91,12 @@ export const EXPERIENCE_COLORS: Record<ExperienceId | 'course' | 'every', { hex:
     soft: '#F7DCD4',
     label: { en: 'From CVeeeZ', ar: 'من CVeeeZ' },
   },
-  xfuse: {
+  'xfuse-lead': {
+    hex: '#9DB5A0',
+    soft: '#DCE7DD',
+    label: { en: 'From X-FUSE', ar: 'من X-FUSE' },
+  },
+  'xfuse-sell': {
     hex: '#9DB5A0',
     soft: '#DCE7DD',
     label: { en: 'From X-FUSE', ar: 'من X-FUSE' },
@@ -114,8 +120,8 @@ export const EXPERIENCE_COLORS: Record<ExperienceId | 'course' | 'every', { hex:
 
 export const PORTFOLIO_COPY = {
   brand: {
-    en: 'Esraa El Labban',
-    ar: 'إسراء اللبان',
+    en: 'Israa Ellban',
+    ar: 'Israa Ellban',
   },
   nav: [
     { id: 'scene-journey', label: { en: 'Journey', ar: 'رحلتي' } },
@@ -131,7 +137,7 @@ export const PORTFOLIO_COPY = {
     lightMode: { en: 'Light mode', ar: 'وضع النهار' },
   },
   gate: {
-    line1: { en: 'It’s a bit dark in here.', ar: 'المكان ضلمة شوية..' },
+    line1: { en: 'It’s a bit dark in here.', ar: 'المكان ضلمة شوية 👀؟!!' },
     line2: { en: 'Mind pulling that lantern?', ar: 'ممكن تشد الفانوس ده؟' },
     button: { en: 'Pull lantern', ar: 'شد الفانوس' },
     tooltip: { en: 'Pull or tap the lantern cord', ar: 'شد أو دوس على حبل الفانوس' },
@@ -139,28 +145,36 @@ export const PORTFOLIO_COPY = {
   },
   hero: {
     en: {
-      line1: 'Hello! I’m Esraa El Labban',
-      line2: 'This is my portfolio.',
-      line3Before: 'It’s full of ',
+      greeting: 'Hello hello..',
+      namePrefix: 'My name’s ',
+      name: 'Israa Ellban',
+      portfolioPrefix: ' and this is my ',
+      portfolioWord: 'portfolio',
+      portfolioDots: '...',
+      line3Before: 'Full of ',
       line3Curiosity: 'curiosity',
-      line3Mid: ', and full of ',
+      line3Mid: ' and a bit of persistence to take these ',
       line3Steps: 'steps',
-      line3After: ' I’ve actually taken.',
+      line3After: '...',
     },
     ar: {
-      line1: 'هاااللو! أنا إسراء اللبان',
-      line2: 'ده البورتفوليو بتاعي.',
-      line3Before: 'مليان ',
+      greeting: 'هاالو هاالو ..',
+      namePrefix: 'أنا ',
+      name: 'إسراء اللبان',
+      portfolioPrefix: ' وده ',
+      portfolioWord: 'البورتفوليو',
+      portfolioDots: ' بتاعي...',
+      line3Before: 'اللي مليااان ',
       line3Curiosity: 'فضول',
-      line3Mid: '، ومليان ',
-      line3Steps: 'خطوات',
-      line3After: ' قدرت أحققها.',
+      line3Mid: ' وشوية مثابرة علشان أحقق ',
+      line3Steps: 'الخطوات',
+      line3After: ' دي...',
     },
   },
   journey: {
     lead: {
-      en: 'My journey always started with...',
-      ar: 'رحلتي دايمًا كانت بتبدأ بـ...',
+      en: 'My journey always starts with',
+      ar: 'رحلتي دايمًا بتبدأ بـ',
     },
     lines: [
       {
@@ -192,14 +206,13 @@ export const PORTFOLIO_COPY = {
     ctaCompany: 'FERTICAL',
   },
   experiences: {
-    openFile: { en: 'Open the file', ar: 'افتح الملف' },
-    closeLabel: { en: 'Close', ar: 'اقفل' },
-    tabLead: { en: 'Lead', ar: 'Lead' },
-    tabSell: { en: 'Sell', ar: 'Sell' },
+    openFile: { en: 'Open the file', ar: 'Open the file' },
+    closeLabel: { en: 'Close', ar: 'إغلاق' },
     blocks: {
-      challenge: { en: 'Challenge', ar: 'التحدي' },
-      whatIDid: { en: 'What I did', ar: 'اللي عملته' },
-      result: { en: 'Result', ar: 'النتيجة' },
+      roleOverview: { en: 'Role Overview', ar: 'نبذة عن الدور' },
+      responsibilities: { en: 'Key Responsibilities', ar: 'المسؤوليات' },
+      keyAchievements: { en: 'Key Achievements', ar: 'الإنجازات' },
+      skillsDemonstrated: { en: 'Skills Demonstrated', ar: 'المهارات' },
     },
     pocketLabel: 'skills pocket',
     cveeezStage: {
@@ -217,6 +230,11 @@ export const PORTFOLIO_COPY = {
         ar: 'فبنيت الـ workflow من الأول.',
       },
       clockSuffix: { en: 'hrs / day', ar: 'ساعات / يوم' },
+      monthLabel: { en: '1 Month', ar: 'شهر كامل' },
+      dropSteps: {
+        en: ['1 Month', '14 Days', '3 Days', '12 Hours', '4 Hours'],
+        ar: ['شهر', '١٤ يوم', '٣ أيام', '١٢ ساعة', '٤ ساعات'],
+      },
       stampsChaos: [
         { en: 'Frozen', ar: 'متوقف' },
         { en: 'Closed', ar: 'مقفول' },
@@ -257,9 +275,10 @@ export const PORTFOLIO_COPY = {
   },
   connect: {
     eyebrow: { en: 'Closing Horizon', ar: 'الخطوة الجاية' },
-    titleBefore: { en: 'So, ', ar: 'طب و' },
-    titleAccent: { en: 'what’s next?', ar: 'إيه الجاي؟' },
-    titleAfter: { en: ' Honestly, I’d love to know.', ar: ' بصراحة.. نفسي أعرف.' },
+    line1Before: { en: 'Umm, ', ar: 'أممم.. ' },
+    line1Highlight: { en: "what's next?", ar: 'إيه الخطوة الجاية؟' },
+    line1Emoji: '👀',
+    line2: "idk.. let's figure it out.",
     body: {
       en: 'I’m looking for a place as a Product Manager or Account Manager where I can mix research, problem-solving, and understanding people. Open for onsite or remote position. If that sounds like what you need, let’s talk.',
       ar: 'بدور على مكان كـ Product Manager أو Account Manager أجمع فيه بين البحث، وحل المشاكل، وفهم الناس. متاحة لشغل onsite أو remote. لو ده اللي محتاجه، يلا نتكلم.',
@@ -270,11 +289,14 @@ export const PORTFOLIO_COPY = {
     },
     email: 'israaellban@gmail.com',
     phone: '+201554488665',
+    whatsappUrl: 'https://wa.me/201554488665',
+    whatsappLabel: { en: 'WhatsApp', ar: 'واتساب' },
+    downloadCv: { en: 'Download my CV', ar: 'تحميل الـ CV' },
     copyEmail: { en: 'Copy Email', ar: 'انسخ الإيميل' },
     copied: { en: 'Copied', ar: 'اتنسخ' },
     copyLabel: { en: 'Copy', ar: 'نسخ' },
     directEmailLabel: { en: 'DIRECT EMAIL', ar: 'الإيميل المباشر' },
-    phoneLabel: { en: 'PHONE', ar: 'الموبايل' },
+    phoneLabel: { en: 'WHATSAPP', ar: 'واتساب' },
     focusAreasLabel: { en: 'FOCUS AREAS', ar: 'مجالات شغلي' },
     focusAreasValue: {
       en: 'Product Manager · Account Manager · Business Development · Operations',
@@ -299,57 +321,95 @@ export const EXPERIENCE_STATIONS: ExperienceStationData[] = [
     color: '#A68BC8',
     softColor: '#E4D8F0',
     logoSrc: '/assets/aistudio/Fertoical_logo_e5c793d4.jpg',
-    dates: { en: 'Jan 2023 – May 2025', ar: 'يناير ٢٠٢٣ – مايو ٢٠٢٥' },
+    dates: 'Jan 2023 – May 2025',
+    company: 'FERTICAL',
     role: 'Co-Founder | Business Development & Product Operations',
-    company: { en: 'FERTICAL', ar: 'FERTICAL' },
     companySubtitle: {
       en: 'Agricultural biotechnology startup',
       ar: 'ستارت أب في التكنولوجيا الحيوية الزراعية',
     },
-    headline: {
-      en: 'The product was safe. Nobody wanted to buy it.',
-      ar: 'المنتج كان آمن.. بس محدش عايز يشتريه.',
-    },
-    stat: '1,000+',
-    statLabel: { en: 'units in 3 months', ar: 'منتج في ٣ شهور' },
     achievements: [
       {
         badge: '1,000+',
         caption: {
-          en: 'Sold 1,000+ units in 3 months once we adapted the product to real farm feedback',
-          ar: 'بعنا أكتر من ١٠٠٠ منتج في ٣ شهور بعد ما عدلنا المنتج على كلام المزارعين',
+          en: 'Sold 1,000+ units in 3 months after adapting the product based on farm feedback.',
+          ar: 'بيع أكتر من 1,000 وحدة في 3 شهور بعد تعديل المنتج بناءً على فيدباك المزارع.',
         },
       },
       {
         badge: '+80%',
         caption: {
-          en: 'Grew sales nearly 80% with stronger repeat B2B orders',
-          ar: 'المبيعات زادت حوالي ٨٠٪ والعملاء الدايمين كتروا',
+          en: 'Increased sales by nearly 80% through repeat B2B orders.',
+          ar: 'زيادة المبيعات بحوالي 80% من خلال طلبات B2B متكررة.',
         },
       },
       {
         badge: '€4,000',
         caption: {
-          en: 'Raised €4,000 for the startup through incubators and events',
-          ar: 'جمعت ٤٠٠٠ يورو تمويل للشركة من حاضنات الأعمال والفعاليات',
+          en: 'Secured €4,000 in startup funding.',
+          ar: 'الحصول على تمويل بقيمة 4,000 يورو للستارت أب.',
         },
       },
     ],
-    extraChips: [
-      { en: '+80% sales', ar: '+٨٠٪ مبيعات' },
-      { en: '€4,000 raised', ar: '٤٠٠٠ يورو تمويل' },
-    ],
-    challenge: {
-      en: 'Pests were resisting chemical pesticides in Egypt and Africa. I started with a biological answer, but farmers weren’t adopting it.',
-      ar: 'الحشرات بقت تقاوم المبيدات الكيماوية في مصر وأفريقيا. بدأت بحل بيولوجي، بس المزارعين مكانوش مقتنعين بيه.',
+    roleOverview: {
+      en: 'Co-founded and developed an agricultural biotechnology startup, working across product research, development, market validation, sales, marketing, and business operations.',
+      ar: 'شاركت في تأسيس وتطوير ستارت أب في مجال التكنولوجيا الحيوية الزراعية، واشتغلت على أبحاث المنتج، التطوير، التحقق من السوق، المبيعات، التسويق، والعمليات.',
     },
-    whatIDid: {
-      en: 'I went back to customer discovery: what held farmers back and what they expected. I built B2B relationships with agricultural professionals and farm owners, improved the product from field-trial feedback, and coordinated R&D, production, quality, sales and marketing.',
-      ar: 'نزلت أسأل المزارعين إيه اللي مخوفهم ومستنيين إيه. بنيت علاقات B2B مع أصحاب المزارع والمتخصصين، وحسنت المنتج من تجارب الحقل، ونسقت بين الـ R&D والإنتاج والجودة والمبيعات والتسويق.',
+    responsibilities: {
+      en: [
+        'Conducted market research and customer discovery to identify agricultural challenges and business opportunities.',
+        'Participated in product research, development, testing, packaging, and production.',
+        'Managed sales and marketing activities across B2B and B2C channels.',
+        'Built relationships with agricultural consultants, farm owners, and potential customers.',
+        'Gathered customer feedback and adapted product positioning to address market resistance.',
+        'Managed operational activities, production coordination, and quality control.',
+      ],
+      ar: [
+        'إجراء أبحاث السوق واكتشاف احتياجات العملاء لتحديد التحديات والفرص الزراعية.',
+        'المشاركة في أبحاث المنتج، التطوير، الاختبار، التغليف، والإنتاج.',
+        'إدارة أنشطة المبيعات والتسويق عبر قنوات B2B وB2C.',
+        'بناء علاقات مع الاستشاريين الزراعيين وأصحاب المزارع والعملاء المحتملين.',
+        'جمع فيدباك العملاء وتعديل تموضع المنتج لمواجهة تحديات السوق.',
+        'إدارة العمليات اليومية، وتنسيق الإنتاج، ومراقبة الجودة.',
+      ],
     },
-    result: {
-      en: 'In 3 months we sold 1,000+ products and sales grew almost 80%, with more repeat customers. Through incubators and business events, I helped raise €4,000 for the company.',
-      ar: 'في ٣ شهور بعنا +١٠٠٠ منتج والمبيعات زادت حوالي ٨٠٪. وكمان جمعت ٤٠٠٠ يورو للشركة من حاضنات الأعمال والفعاليات.',
+    keyAchievements: {
+      en: [
+        'Sold more than 1,000 units within three months following product and marketing adjustments.',
+        'Increased sales by approximately 80% through repeat B2B business.',
+        'Secured €4,000 in startup funding.',
+        'Developed customer acquisition and market positioning based on real customer feedback.',
+      ],
+      ar: [
+        'بيع أكتر من 1,000 وحدة خلال 3 شهور بعد تعديلات المنتج والتسويق.',
+        'زيادة المبيعات بنحو 80% من خلال طلبات الـ B2B المتكررة.',
+        'الحصول على تمويل بقيمة 4,000 يورو للستارت أب.',
+        'تطوير استراتيجية استحواذ عملاء وتموضع سوقي مبني على فيدباك حقيقي.',
+      ],
+    },
+    skillsDemonstrated: {
+      en: [
+        'Business Development',
+        'Product Operations',
+        'Market Research',
+        'Sales',
+        'Customer Discovery',
+        'Product Development',
+        'B2B & B2C',
+        'Marketing',
+        'Quality Control',
+      ],
+      ar: [
+        'تطوير الأعمال',
+        'عمليات المنتج',
+        'أبحاث السوق',
+        'المبيعات',
+        'اكتشاف العملاء',
+        'تطوير المنتج',
+        'B2B & B2C',
+        'التسويق',
+        'مراقبة الجودة',
+      ],
     },
   },
   {
@@ -357,157 +417,263 @@ export const EXPERIENCE_STATIONS: ExperienceStationData[] = [
     color: '#E7907A',
     softColor: '#F7DCD4',
     logoSrc: '/assets/aistudio/cveeez_logo_e5423e19.jpg',
-    dates: { en: 'Sep 2024 – Nov 2025', ar: 'سبتمبر ٢٠٢٤ – نوفمبر ٢٠٢٥' },
+    dates: 'Sep 2024 – Nov 2025',
+    company: 'CVeeeZ',
     role: 'LinkedIn Personal Branding Specialist',
-    company: { en: 'CVeeeZ', ar: 'CVeeeZ' },
-    headline: {
-      en: 'Accounts frozen. Clients waiting. Why does this keep happening?',
-      ar: 'حسابات متوقفة، وعملاء مستنيين.. ليه ده بيحصل أصلًا؟',
-    },
-    stat: '1,000+',
-    statLabel: { en: 'LinkedIn profiles', ar: 'بروفايل LinkedIn' },
     achievements: [
       {
         badge: '1,000+',
         caption: {
-          en: 'Delivered 1,000+ LinkedIn personal branding profiles tailored to each industry',
-          ar: 'اشتغلت على أكتر من ١٠٠٠ بروفايل LinkedIn متفصل على كل مجال',
+          en: 'Delivered 1,000+ personalized LinkedIn profiles.',
+          ar: 'تسليم أكتر من 1,000 بروفايل LinkedIn مخصص لكل عميل.',
         },
       },
       {
         badge: '4 hrs/day',
         caption: {
-          en: 'Rebuilt the entire workflow from months of delays down to 4 hours a day',
-          ar: 'بنيت الـ workflow من الأول فالشغل بقى يخلص في ٤ ساعات في اليوم بدل شهور',
+          en: 'Rebuilt workflow from months of delays to approximately 4 hours per day.',
+          ar: 'إعادة بناء الـ workflow وتقليل وقت التسليم من شهور لحوالي 4 ساعات يوميًا.',
         },
       },
       {
         badge: '2 startups',
         caption: {
-          en: 'Supported the director in developing two startup initiatives in software & marketing',
-          ar: 'ساعدت المدير في تطوير فكرتين ستارت أب في البرمجيات والتسويق',
+          en: 'Supported the director in developing two startup initiatives.',
+          ar: 'دعم المدير في تطوير مبادرتين ستارت أب جديدين.',
         },
       },
     ],
-    challenge: {
-      en: 'Accounts were frozen or closed, and clients waited for months.',
-      ar: 'حسابات متوقفة ومقفولة، وعملاء مستنيين بالشهور.',
+    roleOverview: {
+      en: 'Worked with professionals, entrepreneurs, and business owners to build and improve their LinkedIn presence through profile optimization, personal branding, research, and tailored content.',
+      ar: 'اشتغلت مع محترفين ورواد أعمال وأصحاب شركات على بناء وتطوير حضورهم على LinkedIn من خلال تحسين البروفايل، الـ Personal Branding، البحث، وكتابة محتوى مخصص.',
     },
-    whatIDid: {
-      en: 'Instead of fixing accounts one by one, I rebuilt the workflow. I gathered each client’s goals and feedback, turned them into profile improvements, managed revisions, and adapted my advice to different industries and career goals.',
-      ar: 'بدل ما أصلح كل حساب لوحده، بنيت النظام من الأول. كنت بسمع أهداف كل عميل وأحوّلها لتحسينات في البروفايل، وأتابع التعديلات، وأظبط نصايحي حسب مجاله.',
+    responsibilities: {
+      en: [
+        'Optimized LinkedIn profiles based on clients’ careers, industries, and goals.',
+        'Gathered client information and translated it into professional profile content.',
+        'Conducted research to improve positioning and profile relevance.',
+        'Managed client communication, revisions, and delivery.',
+        'Maintained quality and organized workflow across multiple client projects.',
+      ],
+      ar: [
+        'تحسين بروفايلات LinkedIn بناءً على المسار المهني ومجال وأهداف كل عميل.',
+        'جمع معلومات العملاء وتحويلها لمحتوى احترافي للبروفايل.',
+        'إجراء أبحاث لتحسين التموضع وملاءمة البروفايل للسوق.',
+        'إدارة التواصل مع العملاء، التعديلات، والتسليم في المواعيد.',
+        'الحفاظ على الجودة وتنظيم الـ workflow عبر عدة مشاريع في نفس الوقت.',
+      ],
     },
-    result: {
-      en: 'What used to take months of delays now fits into 4 hours a day for every client, across 1,000+ profiles. I started in sales and moderation, then moved into personal branding after strong performance, and later supported the director in developing two startup initiatives in software solutions and marketing.',
-      ar: 'اللي كان بيتأخر شهور بقى يخلص في ٤ ساعات يوميًا على أكتر من ١٠٠٠ بروفايل. بدأت في المبيعات والمودريشن وبعدها اتنقلت للـ Personal Branding وساعدت في تطوير فكرتين ستارت أب.',
+    keyAchievements: {
+      en: [
+        'Delivered over 1,000 LinkedIn profile branding projects.',
+        'Improved workflow organization and reduced delivery time to approximately 4 working hours per day.',
+        'Supported the director in developing two startup initiatives in software solutions and marketing.',
+      ],
+      ar: [
+        'تسليم أكتر من 1,000 مشروع Personal Branding على LinkedIn.',
+        'تطوير تنظيم العمل وتقليل وقت التنفيذ لحوالي 4 ساعات شغل في اليوم.',
+        'دعم المدير في تطوير مبادرتين ستارت أب في حلول السوفتوير والتسويق.',
+      ],
+    },
+    skillsDemonstrated: {
+      en: [
+        'Client Management',
+        'Personal Branding',
+        'Research',
+        'Workflow Improvement',
+        'Project Coordination',
+        'Quality Management',
+        'Communication',
+      ],
+      ar: [
+        'إدارة العملاء',
+        'Personal Branding',
+        'البحث',
+        'تحسين الـ Workflow',
+        'تنسيق المشاريع',
+        'إدارة الجودة',
+        'التواصل',
+      ],
     },
     bridgeBefore: {
       en: 'In parallel, I took the same curiosity into a company: CVeeeZ.',
-      ar: 'في نفس الوقت، خدت نفس الفضول ودخلت شركة CVeeeZ.',
+      ar: 'وبالتوازي، أخدت نفس الفضول لشركة: CVeeeZ.',
     },
   },
   {
-    id: 'xfuse',
+    id: 'xfuse-lead',
     color: '#9DB5A0',
     softColor: '#DCE7DD',
     logoSrc: '/assets/aistudio/X-Fuse_b9307951.jpg',
     darkLogoBg: true,
-    dates: { en: 'Apr 2025 – Dec 2025', ar: 'أبريل ٢٠٢٥ – ديسمبر ٢٠٢٥' },
-    role: 'Team Leader | Sales & Marketing Executive',
-    company: { en: 'X-FUSE', ar: 'X-FUSE' },
-    headline: {
-      en: 'Month one was a failure. Month three hit 120%.',
-      ar: 'أول شهر كان فشل.. والشهر التالت وصلت ١٢٠٪.',
-    },
-    stat: '120%',
-    statLabel: { en: 'of sales target', ar: 'من تارجت المبيعات' },
+    dates: 'Apr 2025 – Dec 2025',
+    company: 'X-FUSE',
+    role: 'Team Leader | Team & Operations Management',
     achievements: [
       {
         badge: '12–15',
         caption: {
-          en: 'Led a cross-functional team of 12–15 across marketing, content, design & web',
-          ar: 'قدت تيم من ١٢–١٥ فرد بين تسويق ومحتوى وتصميم وويب',
+          en: 'Led a cross-functional team of 12–15 members.',
+          ar: 'قيادة تيم متعدد التخصصات مكون من 12 إلى 15 فرد.',
         },
       },
       {
-        badge: 'ClickUp',
+        badge: '5 areas',
         caption: {
-          en: 'Built a ClickUp delivery board tracking review, edits, done & ready stages',
-          ar: 'عملت بورد ClickUp يتابع الشغل من المراجعة والتعديلات لحد النشر',
+          en: 'Coordinated work across 5 functional areas.',
+          ar: 'تنسيق الشغل عبر 5 مجالات وتخصصات مختلفة.',
+        },
+      },
+      {
+        badge: 'KPIs',
+        caption: {
+          en: 'Managed KPIs, task distribution, and individual performance.',
+          ar: 'إدارة الـ KPIs، وتوزيع المهام، ومتابعة أداء كل فرد.',
+        },
+      },
+    ],
+    roleOverview: {
+      en: 'Led a cross-functional team, managing daily operations, task distribution, performance, and coordination to ensure work was delivered efficiently and according to expectations.',
+      ar: 'قُدت تيم متعدد التخصصات، وأدرت العمليات اليومية، وتوزيع المهام، والأداء، والتنسيق علشان الشغل يتسلم بكفاءة وحسب التوقعات.',
+    },
+    responsibilities: {
+      en: [
+        'Managed recruitment, onboarding, and team training.',
+        'Distributed tasks and coordinated daily workflows.',
+        'Set, monitored, and followed up on team KPIs.',
+        'Evaluated individual performance and provided feedback.',
+        'Conducted coaching and performance follow-up.',
+        'Coordinated communication between team members and clients.',
+        'Monitored deadlines, quality, and work delivery.',
+      ],
+      ar: [
+        'إدارة التوظيف، الـ onboarding، وتدريب التيم.',
+        'توزيع المهام وتنسيق الـ workflow اليومي.',
+        'تحديد ومتابعة الـ KPIs الخاصة بالتيم.',
+        'تقييم الأداء الفردي وتقديم الفيدباك المستمر.',
+        'تقديم الكوتشينج ومتابعة تطور الأداء.',
+        'تنسيق التواصل بين أعضاء التيم والعملاء.',
+        'مراقبة المواعيد النهائية، الجودة، وتسليم الشغل.',
+      ],
+    },
+    skillsDemonstrated: {
+      en: [
+        'Team Leadership',
+        'Team Building',
+        'KPI Tracking',
+        'Performance Management',
+        'Recruitment',
+        'Coaching',
+        'Operations',
+        'Workflow Coordination',
+      ],
+      ar: [
+        'قيادة التيم',
+        'بناء الفرق',
+        'متابعة الـ KPIs',
+        'إدارة الأداء',
+        'التوظيف',
+        'الكوتشينج',
+        'العمليات',
+        'تنسيق الـ Workflow',
+      ],
+    },
+    bridgeBefore: {
+      en: 'From my success at CVeeeZ, a new partnership began for a startup called X-FUSE.',
+      ar: 'ومن نجاحي في CVeeeZ، بدأت شراكة جديدة في ستارت أب اسمه X-FUSE.',
+    },
+  },
+  {
+    id: 'xfuse-sell',
+    color: '#9DB5A0',
+    softColor: '#DCE7DD',
+    logoSrc: '/assets/aistudio/X-Fuse_b9307951.jpg',
+    darkLogoBg: true,
+    dates: 'Apr 2025 – Dec 2025',
+    company: 'X-FUSE',
+    role: 'Sales & Marketing Executive',
+    achievements: [
+      {
+        badge: '70%',
+        caption: {
+          en: 'Achieved 70% of target in the first month.',
+          ar: 'تحقيق 70% من التارجت الشهري في أول شهر.',
         },
       },
       {
         badge: '120%',
         caption: {
-          en: 'Turned month 1 miss into 70% in month 2 and 120% of target in month 3',
-          ar: 'بعد فشل أول شهر وصلت ٧٠٪ في التاني و١٢٠٪ من التارجت في التالت',
+          en: 'Reached 120% of target in the second month.',
+          ar: 'الوصول إلى 120% من التارجت في تاني شهر.',
+        },
+      },
+      {
+        badge: 'Full cycle',
+        caption: {
+          en: 'Managed the full sales cycle from outreach to closing.',
+          ar: 'إدارة دورة المبيعات كاملة من التواصل لحد إقفال الصفقات.',
         },
       },
     ],
-    tabs: {
-      lead: [
-        {
-          badge: '12–15',
-          caption: {
-            en: 'Led a 12–15 member team across marketing, content, design & web',
-            ar: 'قدت تيم من ١٢–١٥ فرد بين تسويق ومحتوى وتصميم وويب',
-          },
-        },
-        {
-          badge: 'ClickUp',
-          caption: {
-            en: 'Set up ClickUp board so everyone sees what is in review, edits, done & ready',
-            ar: 'عملت بورد ClickUp للتيم كله يشوف كل حاجة تحت المراجعة أو جاهزة للنشر',
-          },
-        },
-        {
-          badge: 'KPIs',
-          caption: {
-            en: 'Defined every role, trained the team as I learned & tracked delivery quality',
-            ar: 'حددت دور كل واحد ودرّبت التيم وتابعت الـ KPIs وجودة التسليم',
-          },
-        },
+    roleOverview: {
+      en: 'Managed sales and client acquisition activities, from identifying potential customers and understanding their needs to presenting solutions, negotiating, closing deals, and maintaining client relationships.',
+      ar: 'أدرت أنشطة المبيعات والاستحواذ على العملاء، من تحديد العملاء المحتملين وفهم احتياجاتهم، لعرض الحلول، والتفاوض، وإقفال الصفقات، والحفاظ على العلاقات.',
+    },
+    responsibilities: {
+      en: [
+        'Generated and qualified leads.',
+        'Conducted virtual client meetings and service presentations.',
+        'Identified customer needs and recommended suitable solutions.',
+        'Managed objections and negotiations.',
+        'Maintained CRM records and sales pipelines.',
+        'Followed up with prospects and existing clients.',
+        'Built and maintained client relationships.',
       ],
-      sell: [
-        {
-          badge: '120%',
-          caption: {
-            en: 'Grew from a month 1 miss to 70% in month 2 and 120% of sales target in month 3',
-            ar: 'وصلت لـ ١٢٠٪ من التارجت في الشهر التالت بعد ٧٠٪ في التاني وفشل الأول',
-          },
-        },
-        {
-          badge: 'Closed',
-          caption: {
-            en: 'Led discovery calls, presentations, objection handling, negotiation & follow-up',
-            ar: 'قدت مكالمات الاكتشاف والعروض والرد على الاعتراضات والتفاوض والمتابعة',
-          },
-        },
-        {
-          badge: 'Positioned',
-          caption: {
-            en: 'Refined how we positioned our services to match what clients actually bought',
-            ar: 'طورت طريقة عرض خدماتنا علشان تناسب اللي العميل محتاجه فعلاً',
-          },
-        },
+      ar: [
+        'توليد وتأهيل العملاء المحتملين (Lead Generation).',
+        'عقد اجتماعات أونلاين مع العملاء وعرض الخدمات.',
+        'تحديد احتياجات العملاء وترشيح الحلول المناسبة ليهم.',
+        'التعامل مع الاعتراضات وإدارة التفاوض.',
+        'متابعة بيانات الـ CRM وخطوط المبيعات (Pipelines).',
+        'المتابعة المستمرة مع العملاء المحتملين والحاليين.',
+        'بناء علاقات طويلة المدى مع العملاء والحفاظ عليها.',
       ],
     },
-    extraChips: [{ en: 'Team of 12–15', ar: 'تيم ١٢–١٥ فرد' }],
-    challenge: {
-      en: 'A field I barely knew, a team of 12–15 across marketing, content, design and web, and a first month that missed the target.',
-      ar: 'مجال مكنتش أعرفه، وتيم من ١٢–١٥ شخص بين تسويق ومحتوى وتصميم وويب، وأول شهر موصلتش فيه للتارجت.',
+    keyAchievements: {
+      en: [
+        'Achieved 70% of the monthly target in the first month.',
+        'Reached 120% of the target in the second month.',
+      ],
+      ar: [
+        'تحقيق 70% من التارجت الشهري في أول شهر.',
+        'الوصول إلى 120% من التارجت في تاني شهر.',
+      ],
     },
-    whatIDid: {
-      en: 'I learned step by step and taught the team as I learned, defined every role, tracked KPIs, and ran training and delivery quality. In sales I led discovery calls, presentations, objection handling, negotiation and follow-up, and improved how our services were positioned. I also set up a ClickUp board so everyone could see what was in review, in edits, done, or ready to publish.',
-      ar: 'اتعلمت خطوة بخطوة وعلمت التيم معايا، وحددت دور كل فرد وتابعت الـ KPIs والتدريب وجودة التسليم. وفي المبيعات مسكت مكالمات الاكتشاف والعروض والتفاوض والمتابعة، وعملت بورد ClickUp ينظم الشغل كله.',
-    },
-    result: {
-      en: 'Month 1: a failure. Month 2: 70% of target. Month 3: 120%.',
-      ar: 'الشهر الأول: فشل. الشهر التاني: ٧٠٪ من التارجت. الشهر التالت: ١٢٠٪.',
+    skillsDemonstrated: {
+      en: [
+        'Sales',
+        'Marketing',
+        'Lead Generation',
+        'Client Acquisition',
+        'Negotiation',
+        'CRM',
+        'Pipeline Management',
+        'Relationship Management',
+      ],
+      ar: [
+        'المبيعات',
+        'التسويق',
+        'Lead Generation',
+        'استحواذ العملاء',
+        'التفاوض',
+        'CRM',
+        'إدارة الـ Pipeline',
+        'إدارة العلاقات',
+      ],
     },
     bridgeBefore: {
-      en: 'From my success at CVeeeZ, a new partnership began for a startup called X-FUSE.',
-      ar: 'ومن نجاحي في CVeeeZ، ابتدت شراكة جديدة لستارت أب اسمها X-FUSE.',
+      en: 'Alongside leading the team at X-FUSE, I stepped directly into sales & client growth.',
+      ar: 'وجنب قيادة التيم في X-FUSE، دخلت بنفسي في المبيعات ونمو العملاء.',
     },
   },
   {
@@ -515,49 +681,73 @@ export const EXPERIENCE_STATIONS: ExperienceStationData[] = [
     color: '#E3B26E',
     softColor: '#F6E6CB',
     logoSrc: '/assets/aistudio/Cereer_Cv_1ecf1176.jpg',
-    dates: { en: 'Nov 2025 – Mar 2026', ar: 'نوفمبر ٢٠٢٥ – مارس ٢٠٢٦' },
+    dates: 'Nov 2025 – Mar 2026',
+    company: 'Career CV',
     role: 'Sales Specialist',
-    company: { en: 'Career CV', ar: 'Career CV' },
-    headline: {
-      en: 'The right service for the right person.',
-      ar: 'الخدمة الصح للشخص الصح.',
-    },
-    stat: '+25%',
-    statLabel: { en: 'above team level', ar: 'زيادة فوق مستوى التيم' },
     achievements: [
       {
-        badge: '+25%',
+        badge: 'Leads',
         caption: {
-          en: '+25% sales for the marketing team above their usual level',
-          ar: '+25% sales for the marketing team above their usual level',
+          en: 'Converted inbound and outbound leads into paying customers.',
+          ar: 'تحويل الـ inbound والـ outbound leads لعملاء فعليين.',
         },
       },
       {
-        badge: 'Rewrote',
+        badge: 'Services',
         caption: {
-          en: 'Rewrote the client tone of voice',
-          ar: 'Rewrote the client tone of voice',
+          en: 'Sold graphic design, e-commerce, and business services.',
+          ar: 'بيع خدمات الجرافيك ديزاين، التجارة الإلكترونية، وخدمات الأعمال.',
         },
       },
       {
-        badge: 'Tailored',
+        badge: 'Closing',
         caption: {
-          en: 'Customized every plan to the client in front of me',
-          ar: 'Customized every plan to the client in front of me',
+          en: 'Managed customer communication from inquiry to closing.',
+          ar: 'إدارة التواصل مع العملاء من أول الاستفسار لحد إقفال البيع.',
         },
       },
     ],
-    challenge: {
-      en: 'Every customer came with different needs and different reasons to buy.',
-      ar: 'كل عميل كان بيجي باحتياجات مختلفة ودوافع شراء غير التاني.',
+    roleOverview: {
+      en: 'Worked in sales, converting potential customers into clients through needs-based conversations, service recommendations, follow-up, and closing.',
+      ar: 'اشتغلت في المبيعات على تحويل العملاء المحتملين لعملاء فعليين من خلال محادثات مبنية على فهم الاحتياج، ترشيح الخدمات المناسبة، المتابعة، وإقفال الصفقات.',
     },
-    whatIDid: {
-      en: 'I identified what each person needed, customized every plan to the client in front of me, rewrote the client tone of voice, introduced relevant add-ons, and followed up leads through the whole sales process.',
-      ar: 'فهمت كل عميل محتاج إيه، وفصّلت كل خطة على مقاسه، وأعدت صياغة الـ tone of voice، ورشحتله الخدمات الإضافية المناسبة وتابعته طول رحلة البيع.',
+    responsibilities: {
+      en: [
+        'Handled inbound and outbound leads.',
+        'Promoted digital and business services.',
+        'Identified client requirements and recommended suitable services.',
+        'Managed conversations, objections, and follow-ups.',
+        'Supported customer retention and relationship building.',
+      ],
+      ar: [
+        'التعامل مع الـ inbound والـ outbound leads.',
+        'الترويج للخدمات الرقمية وخدمات الأعمال.',
+        'تحديد متطلبات العميل وترشيح الخدمات المناسبة له.',
+        'إدارة المحادثات، الاعتراضات، والمتابعة المستمرة.',
+        'دعم الحفاظ على العملاء وبناء علاقات مستمرة معهم.',
+      ],
+    },
+    skillsDemonstrated: {
+      en: [
+        'Lead Conversion',
+        'Consultative Selling',
+        'Digital Services',
+        'Customer Communication',
+        'Sales Closing',
+        'Customer Retention',
+      ],
+      ar: [
+        'تحويل الـ Leads',
+        'البيع الاستشاري',
+        'الخدمات الرقمية',
+        'التواصل مع العملاء',
+        'إقفال المبيعات',
+        'الحفاظ على العملاء',
+      ],
     },
     bridgeBefore: {
       en: 'A tighter role came next: pure sales.',
-      ar: 'وبعدها دور أركز أكتر: مبيعات وبس.',
+      ar: 'والخطوة اللي بعدها كانت دور مركز أكتر: مبيعات مباشرة.',
     },
   },
 ];
@@ -569,7 +759,7 @@ export const SKILL_GROUPS: SkillGroupData[] = [
     color: '#A68BC8',
     softColor: '#E4D8F0',
     skills: [
-      { id: 's-lead', label: { en: 'Team leadership', ar: 'قيادة التيم' }, level: 'Advanced', source: 'xfuse' },
+      { id: 's-lead', label: { en: 'Team leadership', ar: 'قيادة التيم' }, level: 'Advanced', source: 'xfuse-lead' },
       { id: 's-comm', label: { en: 'Client communication', ar: 'التواصل مع العملاء' }, level: 'Advanced', source: 'cveeez' },
       { id: 's-crit', label: { en: 'Critical thinking', ar: 'التفكير النقدي' }, level: 'Advanced', source: 'every' },
       { id: 's-nego', label: { en: 'Consultative selling & negotiation', ar: 'البيع الاستشاري والتفاوض' }, level: 'Advanced', source: 'careercv' },
@@ -585,7 +775,7 @@ export const SKILL_GROUPS: SkillGroupData[] = [
       { id: 'h-disc', label: { en: 'Customer discovery & market research', ar: 'اكتشاف العميل وبحث السوق' }, level: 'Advanced', source: 'fertical' },
       { id: 'h-wf', label: { en: 'Workflow design', ar: 'تصميم الـ Workflow' }, level: 'Advanced', source: 'cveeez' },
       { id: 'h-pmf', label: { en: 'Product-market fit & positioning', ar: 'ملاءمة المنتج وعرض الخدمات' }, level: 'Intermediate', source: 'fertical' },
-      { id: 'h-kpi', label: { en: 'KPI tracking & sales pipeline', ar: 'متابعة الـ KPIs والمبيعات' }, level: 'Advanced', source: 'xfuse' },
+      { id: 'h-kpi', label: { en: 'KPI tracking & sales pipeline', ar: 'متابعة الـ KPIs والمبيعات' }, level: 'Advanced', source: 'xfuse-sell' },
       { id: 'h-li', label: { en: 'LinkedIn personal branding', ar: 'الـ Personal Branding على LinkedIn' }, level: 'Advanced', source: 'cveeez' },
     ],
   },
@@ -612,7 +802,7 @@ export const SKILL_GROUPS: SkillGroupData[] = [
       { id: 'tl-excel', label: { en: 'Excel', ar: 'Excel' }, level: 'Intermediate', source: 'course' },
       { id: 'tl-pbi', label: { en: 'Power BI', ar: 'Power BI' }, level: 'Beginner', source: 'course' },
       { id: 'tl-ms', label: { en: 'Microsoft tools', ar: 'Microsoft tools' }, level: 'Advanced', source: 'every' },
-      { id: 'tl-clickup', label: { en: 'ClickUp', ar: 'ClickUp' }, level: 'Advanced', source: 'xfuse' },
+      { id: 'tl-clickup', label: { en: 'ClickUp', ar: 'ClickUp' }, level: 'Advanced', source: 'xfuse-lead' },
       { id: 'tl-zoho', label: { en: 'Zoho', ar: 'Zoho' }, level: 'Intermediate', source: 'every' },
       { id: 'tl-odoo', label: { en: 'Odoo', ar: 'Odoo' }, level: 'Intermediate', source: 'every' },
       { id: 'tl-firebase', label: { en: 'Firebase', ar: 'Firebase' }, level: 'Beginner', source: 'every' },
@@ -662,6 +852,6 @@ export const COURSE_BOOKS: CourseBookItem[] = [
     id: 'soft-skills',
     spineColor: '#C59AB8',
     title: 'Soft Skills',
-    provider: { en: 'ماي كنسي', ar: 'ماي كنسي' },
+    provider: { en: 'McKinsey', ar: 'McKinsey' },
   },
 ];

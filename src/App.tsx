@@ -32,6 +32,7 @@ export default function App() {
   const [popupOpen, setPopupOpen] = useState(false);
   const [heroFixedOpacity, setHeroFixedOpacity] = useState(1);
   const [activeSectionId, setActiveSectionId] = useState('scene-hero');
+  const [showPocket, setShowPocket] = useState(false);
   const [, setCollectedCount] = useState(0);
 
   const [debugState, setDebugState] = useState<DebugState>({
@@ -48,7 +49,11 @@ export default function App() {
     html.lang = lang;
     html.dir = lang === 'ar' ? 'rtl' : 'ltr';
     const raf = requestAnimationFrame(() => ScrollTrigger.refresh());
-    return () => cancelAnimationFrame(raf);
+    const timer = window.setTimeout(() => ScrollTrigger.refresh(), 80);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.clearTimeout(timer);
+    };
   }, [lang]);
 
   useEffect(() => {
@@ -97,11 +102,19 @@ export default function App() {
       const vh = window.innerHeight || 800;
       const journeyEl = document.getElementById('scene-journey');
       const expEl = document.getElementById('scene-experiences');
+      const skillsEl = document.getElementById('scene-skills');
 
       if (expEl && y > expEl.offsetTop - vh * 0.25) {
         setHeroFixedOpacity(0);
       } else {
         setHeroFixedOpacity(1);
+      }
+
+      if (expEl) {
+        const inExperiences =
+          y + vh * 0.72 >= expEl.offsetTop &&
+          (!skillsEl || y < skillsEl.offsetTop);
+        setShowPocket(inExperiences);
       }
 
       const sections = [
@@ -145,7 +158,17 @@ export default function App() {
     }
   }, []);
 
+  const handleBackToTop = useCallback(() => {
+    if (lenisRef.current) {
+      lenisRef.current.scrollTo(0, { duration: 1.4 });
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, []);
+
   const handleSkipAllIntro = useCallback(() => {
+    setLang('en');
+    setNightMode(true);
     setSkipIntro(true);
     setGateComplete(true);
     setNavbarVisible(true);
@@ -170,9 +193,18 @@ export default function App() {
     setDebugState({ activeScene: 'learning', sceneProgress: progress, activeBeat: beat });
   }, []);
 
+  const handleNameLanded = useCallback(() => {
+    setNameLanded(true);
+  }, []);
+
+  const handleIntroComplete = useCallback(() => {
+    setScrollUnlocked(true);
+    setDebugState({ activeScene: 'hero', sceneProgress: 0, activeBeat: 'ready-to-scroll' });
+  }, []);
+
   return (
     <div className="relative min-h-screen w-full font-body text-[var(--ink-primary)]">
-      <PointerSparkles active={gateComplete && !nightMode} />
+      <PointerSparkles active={gateComplete} />
 
       <Navbar
         lang={lang}
@@ -192,12 +224,17 @@ export default function App() {
         <SceneDarkGate
           lang={lang}
           onUnlockStart={() => {
+            setLang('en');
+            setNightMode(true);
             setNavbarVisible(true);
             setDebugState({ activeScene: 'gate', sceneProgress: 0.7, activeBeat: 'blooming-light' });
           }}
           onGateComplete={() => {
+            setLang('en');
+            setNightMode(true);
             setGateComplete(true);
             setNavbarVisible(true);
+            setScrollUnlocked(true);
             setDebugState({ activeScene: 'hero', sceneProgress: 0, activeBeat: 'welcome' });
           }}
           onSkipIntro={handleSkipAllIntro}
@@ -211,11 +248,8 @@ export default function App() {
           gateComplete={gateComplete}
           skipTyping={skipIntro}
           logoSlotRef={logoSlotRef}
-          onNameLanded={() => setNameLanded(true)}
-          onIntroComplete={() => {
-            setScrollUnlocked(true);
-            setDebugState({ activeScene: 'hero', sceneProgress: 0, activeBeat: 'ready-to-scroll' });
-          }}
+          onNameLanded={handleNameLanded}
+          onIntroComplete={handleIntroComplete}
           onStartJourneyClick={() => handleNavigate('scene-journey')}
           fixedOpacity={heroFixedOpacity}
         />
@@ -238,7 +272,7 @@ export default function App() {
 
         <SceneExperiences
           lang={lang}
-          showPocket={activeSectionId === 'scene-experiences'}
+          showPocket={showPocket}
           onCollectedCountChange={setCollectedCount}
           onPopupOpenChange={setPopupOpen}
           onDebugUpdate={handleExperiencesDebug}
@@ -255,7 +289,12 @@ export default function App() {
 
         <div className="relative">
           <SceneProjectsTeaser lang={lang} />
-          <SceneConnectFooter lang={lang} nightMode={nightMode} />
+          <SceneConnectFooter
+            lang={lang}
+            nightMode={nightMode}
+            onNavigate={handleNavigate}
+            onBackToTop={handleBackToTop}
+          />
         </div>
       </main>
 

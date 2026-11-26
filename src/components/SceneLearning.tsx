@@ -98,7 +98,7 @@ export const SceneLearning: React.FC<SceneLearningProps> = ({ lang, onDebugUpdat
       <div className="mx-auto max-w-5xl flex flex-col items-center">
         <h2
           className="font-display font-semibold text-center text-[var(--ink-primary)]"
-          style={{ fontSize: 'clamp(2rem, 3.8vw, 3.1rem)' }}
+          style={{ fontSize: 'clamp(1.4rem, 2.5vw, 2.15rem)' }}
         >
           <span>{copy.coursesTitleBefore[lang]}</span>
           <span className="italic text-[#E7907A]">{copy.coursesTitleAccent[lang]}</span>
@@ -159,7 +159,7 @@ export const SceneLearning: React.FC<SceneLearningProps> = ({ lang, onDebugUpdat
                       className="flex-1 flex flex-col items-center justify-center py-2 overflow-hidden"
                     >
                       <span
-                        className="font-display text-[17px] sm:text-[19px] font-bold tracking-wide text-[#2D2140] whitespace-nowrap select-none"
+                        className="font-display text-[14px] sm:text-[15.5px] font-bold tracking-wide text-[#2D2140] whitespace-nowrap select-none"
                         style={{
                           writingMode: 'vertical-rl',
                           transform: 'rotate(180deg)',
@@ -199,7 +199,7 @@ export const SceneLearning: React.FC<SceneLearningProps> = ({ lang, onDebugUpdat
           {/* Subtle active title preview ribbon underneath shelf */}
           <div className="mt-5 min-h-[28px] text-center">
             {hoveredBook && (
-              <p dir="ltr" className="font-display text-lg font-semibold text-[var(--ink-primary)] transition-opacity duration-200">
+              <p dir="ltr" className="font-display text-sm sm:text-base font-semibold text-[var(--ink-primary)] transition-opacity duration-200">
                 {hoveredBook.title}
                 {hoveredBook.provider ? ` · ${hoveredBook.provider[lang]}` : ''}
               </p>
@@ -225,16 +225,16 @@ export const SceneLearning: React.FC<SceneLearningProps> = ({ lang, onDebugUpdat
 
             <div className="flex items-start justify-between gap-4 border-b border-[var(--hairline)] pb-4">
               <div>
-                <h3 dir="ltr" className="font-display text-2xl sm:text-3xl font-semibold text-[var(--ink-primary)]">
+                <h3 dir="ltr" className="font-display text-lg sm:text-xl font-semibold text-[var(--ink-primary)]">
                   {openBook.title}
                 </h3>
                 {openBook.provider?.[lang] && (
-                  <p className="mt-1.5 text-base font-medium text-[#A68BC8]">
+                  <p className="mt-1.5 text-sm font-medium text-[#A68BC8]">
                     {openBook.provider[lang]}
                   </p>
                 )}
                 {openBook.year && (
-                  <p className="mt-1 text-sm text-[var(--ink-muted)]">{openBook.year}</p>
+                  <p className="mt-1 text-xs text-[var(--ink-muted)]">{openBook.year}</p>
                 )}
               </div>
 
@@ -249,7 +249,7 @@ export const SceneLearning: React.FC<SceneLearningProps> = ({ lang, onDebugUpdat
             </div>
 
             {openBook.note?.[lang] && (
-              <p className="mt-4 text-base leading-relaxed text-[var(--ink-secondary)]">
+              <p className="mt-4 text-sm leading-relaxed text-[var(--ink-secondary)]">
                 {openBook.note[lang]}
               </p>
             )}

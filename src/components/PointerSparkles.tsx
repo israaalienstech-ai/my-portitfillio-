@@ -1,27 +1,33 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-interface SparkleDot {
+interface StarTrailItem {
   id: number;
   x: number;
   y: number;
+  dx: number;
+  dy: number;
   size: number;
+  color: string;
+  rot: number;
 }
 
 interface PointerSparklesProps {
   active: boolean;
 }
 
+const STAR_COLORS = ['#A68BC8', '#EDA89B', '#E3B26E', '#9DB5A0', '#D8BEFF'];
+
 /**
- * Emits 2–3 soft fading 4-pt paper sparkles behind the pointer on light scenes (Section 2).
+ * Emits floating star shapes following the cursor.
  */
 export const PointerSparkles: React.FC<PointerSparklesProps> = ({ active }) => {
-  const [sparkles, setSparkles] = useState<SparkleDot[]>([]);
+  const [items, setItems] = useState<StarTrailItem[]>([]);
   const lastSpawnRef = useRef(0);
   const idCounter = useRef(0);
 
   useEffect(() => {
     if (!active) {
-      setSparkles([]);
+      setItems([]);
       return;
     }
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -30,53 +36,75 @@ export const PointerSparkles: React.FC<PointerSparklesProps> = ({ active }) => {
 
     const handleMove = (e: PointerEvent) => {
       const now = performance.now();
-      if (now - lastSpawnRef.current < 160) return;
+      if (now - lastSpawnRef.current < 65) return;
       lastSpawnRef.current = now;
+
       const nextId = ++idCounter.current;
-      const dot: SparkleDot = {
+      const item: StarTrailItem = {
         id: nextId,
-        x: e.clientX + (Math.random() * 10 - 5),
-        y: e.clientY + (Math.random() * 10 - 5),
-        size: 6 + Math.random() * 3.5,
+        x: e.clientX + (Math.random() * 14 - 7),
+        y: e.clientY + (Math.random() * 14 - 7),
+        dx: (Math.random() - 0.5) * 26,
+        dy: -14 - Math.random() * 18,
+        size: 12 + Math.random() * 7,
+        color: STAR_COLORS[nextId % STAR_COLORS.length],
+        rot: Math.round((Math.random() - 0.5) * 40),
       };
-      setSparkles((prev) => [...prev.slice(-2), dot]);
+
+      setItems((prev) => [...prev.slice(-6), item]);
       window.setTimeout(() => {
-        setSparkles((prev) => prev.filter((item) => item.id !== nextId));
-      }, 650);
+        setItems((prev) => prev.filter((it) => it.id !== nextId));
+      }, 850);
     };
 
     window.addEventListener('pointermove', handleMove, { passive: true });
     return () => window.removeEventListener('pointermove', handleMove);
   }, [active]);
 
-  if (!active || sparkles.length === 0) return null;
+  if (!active || items.length === 0) return null;
 
   return (
     <div className="pointer-events-none fixed inset-0 z-30 overflow-hidden" aria-hidden="true">
-      {sparkles.map((sp) => (
+      {items.map((sp) => (
         <svg
           key={sp.id}
           viewBox="0 0 24 24"
-          style={{
-            position: 'fixed',
-            left: sp.x - sp.size / 2,
-            top: sp.y - sp.size / 2,
-            width: sp.size,
-            height: sp.size,
-            animation: 'fadeOutSparkle 650ms cubic-bezier(0.22,0.8,0.3,1) forwards',
-          }}
+          style={
+            {
+              position: 'fixed',
+              left: sp.x - sp.size / 2,
+              top: sp.y - sp.size / 2,
+              width: sp.size,
+              height: sp.size,
+              '--dx': `${sp.dx.toFixed(1)}px`,
+              '--dy': `${sp.dy.toFixed(1)}px`,
+              '--rot': `${sp.rot}deg`,
+              animation: 'starFloatDrift 850ms cubic-bezier(0.22,0.8,0.3,1) forwards',
+              filter: `drop-shadow(0 0 4px ${sp.color}66)`,
+            } as React.CSSProperties
+          }
         >
           <path
-            d="M12 1 C12.8 8.5, 15.5 11.2, 23 12 C15.5 12.8, 12.8 15.5, 12 23 C11.2 15.5, 8.5 12.8, 1 12 C8.5 11.2, 11.2 8.5, 12 1 Z"
-            fill="#E3B26E"
-            fillOpacity="0.48"
+            d="M12 2 L14.6 8.5 L21.5 9.2 L16.2 13.8 L17.9 20.6 L12 17 L6.1 20.6 L7.8 13.8 L2.5 9.2 L9.4 8.5 Z"
+            fill={sp.color}
+            fillOpacity="0.9"
           />
         </svg>
       ))}
       <style>{`
-        @keyframes fadeOutSparkle {
-          0% { opacity: 0.9; transform: scale(0.75) rotate(0deg); }
-          100% { opacity: 0; transform: scale(1.15) rotate(18deg); }
+        @keyframes starFloatDrift {
+          0% {
+            opacity: 0;
+            transform: translate3d(0, 0, 0) scale(0.45) rotate(0deg);
+          }
+          22% {
+            opacity: 0.95;
+            transform: translate3d(calc(var(--dx) * 0.3), calc(var(--dy) * 0.3), 0) scale(1.08) rotate(calc(var(--rot) * 0.4));
+          }
+          100% {
+            opacity: 0;
+            transform: translate3d(var(--dx), var(--dy), 0) scale(0.6) rotate(var(--rot));
+          }
         }
       `}</style>
     </div>

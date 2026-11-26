@@ -27,13 +27,17 @@ export const SceneJourney: React.FC<SceneJourneyProps> = ({
   const lineRefs = useRef<(HTMLLIElement | null)[]>([]);
   const imgRefs = useRef<(HTMLDivElement | null)[]>([]);
   const closingRef = useRef<HTMLDivElement>(null);
+  const scratchPathsRef = useRef<(SVGPathElement | null)[]>([]);
   const ctaRef = useRef<HTMLDivElement>(null);
 
   const [stepState, setStepState] = useState({
+    f1: false,
+    f2: false,
+    f3: false,
+    f4: false,
     h1: false,
     h2: false,
     h3: false,
-    doodle: false,
   });
 
   const triggeredSoundsRef = useRef({
@@ -41,7 +45,9 @@ export const SceneJourney: React.FC<SceneJourneyProps> = ({
     beat1: false,
     beat2: false,
     beat3: false,
-    scribble: false,
+    scratch1: false,
+    scratch2: false,
+    scratch3: false,
   });
 
   useLayoutEffect(() => {
@@ -51,7 +57,7 @@ export const SceneJourney: React.FC<SceneJourneyProps> = ({
 
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (reduced) {
-      setStepState({ h1: true, h2: true, h3: true, doodle: true });
+      setStepState({ f1: true, f2: true, f3: true, f4: true, h1: true, h2: true, h3: true });
       return;
     }
 
@@ -77,10 +83,13 @@ export const SceneJourney: React.FC<SceneJourneyProps> = ({
           onUpdate: (self) => {
             const p = self.progress;
             setStepState({
+              f1: p >= 0.04,
+              f2: p >= 0.06,
+              f3: p >= 0.08,
+              f4: p >= 0.1,
               h1: p >= 0.19,
               h2: p >= 0.37,
               h3: p >= 0.55,
-              doodle: p >= 0.72,
             });
 
             let activeBeat = 'lead';
@@ -96,17 +105,25 @@ export const SceneJourney: React.FC<SceneJourneyProps> = ({
                 triggeredSoundsRef.current.beat2 = true;
                 soundSystem.journeyBeat(1);
               }
-            } else if (p > 0.49 && p <= 0.67) {
+            } else if (p > 0.49 && p <= 0.65) {
               activeBeat = 'line-3-critical';
               if (!triggeredSoundsRef.current.beat3 && self.direction > 0) {
                 triggeredSoundsRef.current.beat3 = true;
                 soundSystem.journeyBeat(2);
               }
-            } else if (p > 0.67 && p <= 0.85) {
-              activeBeat = 'scribbles';
-              if (!triggeredSoundsRef.current.scribble && self.direction > 0) {
-                triggeredSoundsRef.current.scribble = true;
+            } else if (p > 0.65 && p <= 0.85) {
+              activeBeat = 'scratches';
+              if (p > 0.68 && !triggeredSoundsRef.current.scratch1 && self.direction > 0) {
+                triggeredSoundsRef.current.scratch1 = true;
                 soundSystem.scratchBurst(0);
+              }
+              if (p > 0.74 && !triggeredSoundsRef.current.scratch2 && self.direction > 0) {
+                triggeredSoundsRef.current.scratch2 = true;
+                soundSystem.scratchBurst(1);
+              }
+              if (p > 0.8 && !triggeredSoundsRef.current.scratch3 && self.direction > 0) {
+                triggeredSoundsRef.current.scratch3 = true;
+                soundSystem.scratchBurst(2);
               }
             } else if (p > 0.85) {
               activeBeat = 'fertical-cta';
@@ -119,9 +136,9 @@ export const SceneJourney: React.FC<SceneJourneyProps> = ({
       if (leadRef.current) {
         tl.fromTo(
           leadRef.current,
-          { opacity: 0.25, y: 18 },
-          { opacity: 1, y: 0, duration: 0.1, ease: 'power2.out' },
-          0,
+          { opacity: 0, y: 38, scale: 0.9, rotate: isRtl ? 2 : -2 },
+          { opacity: 1, y: 0, scale: 1, rotate: 0, duration: 0.11, ease: 'back.out(1.35)' },
+          0.01,
         );
       }
 
@@ -173,14 +190,32 @@ export const SceneJourney: React.FC<SceneJourneyProps> = ({
         );
       }
 
-      // Scroll Step 4 -> Scribbles closing line
+      // Scroll Step 4 -> Closing line + original 3-stroke rose/coral scratches
       if (closingRef.current) {
-        tl.fromTo(closingRef.current, { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.1 }, 0.66);
+        tl.fromTo(closingRef.current, { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.08 }, 0.62);
       }
+      scratchPathsRef.current.forEach((pathEl, idx) => {
+        if (!pathEl) return;
+        const len = pathEl.getTotalLength();
+        const at = 0.67 + idx * 0.06;
+        tl.fromTo(
+          pathEl,
+          { strokeDasharray: len, strokeDashoffset: len },
+          { strokeDashoffset: 0, duration: 0.055, ease: 'none' },
+          at,
+        );
+        if (closingRef.current) {
+          tl.to(
+            closingRef.current,
+            { x: idx % 2 === 0 ? 1.2 : -1.2, y: 0.8, duration: 0.025, yoyo: true, repeat: 1 },
+            at,
+          );
+        }
+      });
 
       // Scroll Step 5 -> Large FERTICAL CTA
       if (ctaRef.current) {
-        tl.fromTo(ctaRef.current, { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.1 }, 0.84);
+        tl.fromTo(ctaRef.current, { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.1 }, 0.85);
       }
     }, outer);
 
@@ -221,23 +256,73 @@ export const SceneJourney: React.FC<SceneJourneyProps> = ({
           className="sticky-stage paper-grain-surface"
           style={{ backgroundColor: 'var(--surface-peach)' }}
         >
-          <div className="relative mx-auto flex h-full w-full max-w-[1400px] flex-col justify-center px-6 sm:px-12 lg:px-20 py-10">
-            <div className="flex flex-col-reverse md:grid md:grid-cols-12 md:items-center gap-6 md:gap-10">
+          <div className="relative mx-auto flex h-full w-full max-w-[1400px] flex-col justify-center px-5 sm:px-12 lg:px-20 py-4 md:py-10">
+            <div className="flex flex-col-reverse md:grid md:grid-cols-12 md:items-center gap-3 md:gap-10">
               {/* Inline-start scroll steps */}
               <div className="md:col-span-6 flex flex-col justify-center">
-                <h2
-                  ref={leadRef}
-                  className="font-display font-semibold leading-[1.15] text-[var(--ink-primary)] max-w-2xl"
-                  style={{ fontSize: 'clamp(1.75rem, 3.4vw, 2.9rem)' }}
-                >
-                  {copy.lead[lang]}
-                </h2>
+                {(() => {
+                  const leadStr = copy.lead[lang].trim();
+                  const lastSpace = leadStr.lastIndexOf(' ');
+                  const leadBeforeLast = lastSpace > 0 ? leadStr.slice(0, lastSpace + 1) : '';
+                  const leadLastWord = lastSpace > 0 ? leadStr.slice(lastSpace + 1) : leadStr;
+                  return (
+                    <h2
+                      ref={leadRef}
+                      className="font-display font-semibold leading-[1.2] text-[var(--ink-primary)] max-w-2xl"
+                      style={{ fontSize: 'clamp(1.25rem, 2.85vw, 2.48rem)' }}
+                    >
+                      <span>{leadBeforeLast}</span>
+                      <span className="inline-flex items-center gap-2 whitespace-nowrap align-baseline">
+                        <span>{leadLastWord}</span>
+                        <svg
+                          viewBox="0 0 92 26"
+                          className={`inline-block h-5 w-16 sm:h-6 sm:w-20 align-middle overflow-visible shrink-0 ${isRtl ? '-scale-x-100' : ''}`}
+                          aria-hidden="true"
+                        >
+                          {[
+                            { cx: 11, cy: 17, rot: -18, active: stepState.f1 },
+                            { cx: 33, cy: 8, rot: -10, active: stepState.f2 },
+                            { cx: 56, cy: 17, rot: -16, active: stepState.f3 },
+                            { cx: 79, cy: 8, rot: -12, active: stepState.f4 },
+                          ].map((fp, fIdx) => (
+                            <g
+                              key={fIdx}
+                              style={{
+                                opacity: fp.active ? 1 : 0,
+                                transform: fp.active ? 'scale(1)' : 'scale(0.35)',
+                                transformOrigin: `${fp.cx}px ${fp.cy}px`,
+                                transition: 'opacity 360ms ease, transform 420ms cubic-bezier(0.34,1.4,0.5,1)',
+                              }}
+                            >
+                              <ellipse
+                                cx={fp.cx}
+                                cy={fp.cy}
+                                rx="4.8"
+                                ry="3"
+                                transform={`rotate(${fp.rot} ${fp.cx} ${fp.cy})`}
+                                fill="#EDA89B"
+                                stroke="#7A4FB0"
+                                strokeWidth="1.5"
+                              />
+                              <circle
+                                cx={fp.cx + 5.8}
+                                cy={fp.cy - 2.3}
+                                r="1.15"
+                                fill="#7A4FB0"
+                              />
+                            </g>
+                          ))}
+                        </svg>
+                      </span>
+                    </h2>
+                  );
+                })()}
 
-                <ol className="mt-5 md:mt-7 space-y-4 md:space-y-5 max-w-xl">
+                <ol className="mt-3 md:mt-7 space-y-2 sm:space-y-3 md:space-y-5 max-w-xl">
                   {/* Line 1: Light purple marker */}
                   <li
                     ref={(el) => { lineRefs.current[0] = el; }}
-                    className="flex items-baseline gap-2.5 text-base sm:text-lg md:text-xl leading-relaxed text-[var(--ink-secondary)]"
+                    className="flex items-baseline gap-2.5 text-sm sm:text-base md:text-xl leading-snug md:leading-relaxed text-[var(--ink-secondary)]"
                   >
                     <span className="font-display font-bold text-[#7a4fb0] shrink-0">
                       {copy.lines[0].num[lang]}
@@ -262,7 +347,7 @@ export const SceneJourney: React.FC<SceneJourneyProps> = ({
                   {/* Line 2: Hand-drawn sage underline #8fb996 */}
                   <li
                     ref={(el) => { lineRefs.current[1] = el; }}
-                    className="flex items-baseline gap-2.5 text-base sm:text-lg md:text-xl leading-relaxed text-[var(--ink-secondary)]"
+                    className="flex items-baseline gap-2.5 text-sm sm:text-base md:text-xl leading-snug md:leading-relaxed text-[var(--ink-secondary)]"
                   >
                     <span className="font-display font-bold text-[#5e8e67] shrink-0">
                       {copy.lines[1].num[lang]}
@@ -295,7 +380,7 @@ export const SceneJourney: React.FC<SceneJourneyProps> = ({
                   {/* Line 3: Hand-drawn pink circle #e9a8a0 */}
                   <li
                     ref={(el) => { lineRefs.current[2] = el; }}
-                    className="flex items-baseline gap-2.5 text-base sm:text-lg md:text-xl leading-relaxed text-[var(--ink-secondary)]"
+                    className="flex items-baseline gap-2.5 text-sm sm:text-base md:text-xl leading-snug md:leading-relaxed text-[var(--ink-secondary)]"
                   >
                     <span className="font-display font-bold text-[#c77166] shrink-0">
                       {copy.lines[2].num[lang]}
@@ -326,89 +411,97 @@ export const SceneJourney: React.FC<SceneJourneyProps> = ({
                   </li>
                 </ol>
 
-                {/* Closing line: wobbly "scribbles" + gold (#e8b04a) spiral, star, and arrow doodles */}
+                {/* Closing line + original rose 3-stroke scratches */}
                 <div
                   ref={closingRef}
-                  className="mt-6 md:mt-8 flex flex-wrap items-center gap-x-2 text-xl sm:text-2xl md:text-[28px] font-display text-[var(--ink-primary)]"
+                  className="mt-3.5 md:mt-8 flex flex-wrap items-center gap-x-2 text-base sm:text-xl md:text-[28px] font-display text-[var(--ink-primary)]"
                 >
                   <span>{copy.closingBefore[lang]}</span>
-                  <span className="relative inline-block px-2 font-semibold italic text-[#c97e24] dark:text-[#e8b04a]">
-                    <span className="inline-block -rotate-2">{copy.closingWord[lang]}</span>
-                    {/* Wobbly gold underline + small spiral, star & arrow doodles */}
+                  <span className="relative inline-block px-1.5 font-semibold italic text-[#D97F70] dark:text-[#EDA89B]">
+                    {copy.closingWord[lang]}
                     <svg
-                      viewBox="0 0 175 68"
-                      className="pointer-events-none absolute -inset-x-4 -inset-y-3 h-[155%] w-[138%] overflow-visible"
+                      viewBox="0 0 130 44"
+                      className="pointer-events-none absolute -inset-x-2 -inset-y-1.5 h-[135%] w-[115%] overflow-visible"
                       aria-hidden="true"
                     >
-                      {/* Wobbly line directly under word */}
                       <path
-                        d="M 18 44 Q 32 38, 46 44 T 74 44 T 102 44 T 130 44"
+                        ref={(el) => { scratchPathsRef.current[0] = el; }}
+                        d="M 4 24 C 34 15, 86 19, 122 14"
                         fill="none"
-                        stroke="#e8b04a"
-                        strokeWidth="2.6"
+                        stroke="#E7907A"
+                        strokeWidth="3.2"
                         strokeLinecap="round"
-                        strokeDasharray="150"
-                        strokeDashoffset={stepState.doodle ? 0 : 150}
-                        style={{ transition: 'stroke-dashoffset 550ms ease' }}
                       />
-                      {/* Small gold spiral on one side */}
                       <path
-                        d="M 10 24 C 6 19, 14 14, 18 19 C 22 24, 14 31, 8 27 C 3 23, 5 13, 14 11"
+                        ref={(el) => { scratchPathsRef.current[1] = el; }}
+                        d="M 118 22 C 80 28, 40 21, 8 30"
                         fill="none"
-                        stroke="#e8b04a"
-                        strokeWidth="2"
+                        stroke="#EDA89B"
+                        strokeWidth="2.4"
                         strokeLinecap="round"
-                        strokeDasharray="90"
-                        strokeDashoffset={stepState.doodle ? 0 : 90}
-                        style={{ transition: 'stroke-dashoffset 550ms ease 180ms' }}
                       />
-                      {/* Small 4-point gold star */}
                       <path
-                        d="M 148 11 L 151 18 L 158 20 L 151 22 L 148 29 L 145 22 L 138 20 L 145 18 Z"
+                        ref={(el) => { scratchPathsRef.current[2] = el; }}
+                        d="M 10 18 C 46 31, 92 24, 126 29"
                         fill="none"
-                        stroke="#e8b04a"
-                        strokeWidth="1.9"
-                        strokeLinejoin="round"
-                        strokeDasharray="70"
-                        strokeDashoffset={stepState.doodle ? 0 : 70}
-                        style={{ transition: 'stroke-dashoffset 480ms ease 320ms' }}
-                      />
-                      {/* Small curved arrow */}
-                      <path
-                        d="M 136 46 Q 152 46, 158 34 M 151 36 L 158 34 L 161 41"
-                        fill="none"
-                        stroke="#e8b04a"
-                        strokeWidth="2"
+                        stroke="#E7907A"
+                        strokeWidth="2.8"
                         strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeDasharray="70"
-                        strokeDashoffset={stepState.doodle ? 0 : 70}
-                        style={{ transition: 'stroke-dashoffset 480ms ease 440ms' }}
                       />
                     </svg>
                   </span>
                   <span>{copy.closingAfter[lang]}</span>
                 </div>
 
-                {/* Large CTA: This is where it started: FERTICAL -> */}
-                <div ref={ctaRef} className="mt-8 flex flex-wrap items-center gap-3.5">
-                  <span className="font-display text-lg sm:text-xl font-medium text-[var(--ink-secondary)]">
+                {/* Redesigned botanical storybook CTA: This is where it started -> FERTICAL */}
+                <div ref={ctaRef} className="mt-3.5 md:mt-8 flex flex-wrap items-center gap-2.5 md:gap-3.5">
+                  <span className="font-display text-sm sm:text-lg md:text-xl font-medium text-[var(--ink-secondary)]">
                     {copy.ctaPrefix[lang]}
                   </span>
                   <button
                     type="button"
                     onClick={onJumpToFertical}
-                    className="inline-flex items-center gap-3 rounded-full bg-[#2D2140] px-8 py-4 font-display text-lg sm:text-2xl font-bold tracking-wide text-[#F5EFE0] shadow-[var(--paper-shadow)] hover:bg-[#41305C] hover:scale-[1.03] dark:bg-[#A68BC8] dark:text-[#1A1328] dark:hover:bg-[#E4D8F0] transition-all focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#A68BC8]"
+                    className="group relative inline-flex items-center gap-2.5 md:gap-3.5 rounded-2xl border-2 border-[#7A4FB0]/35 bg-[var(--surface-card)] px-3.5 py-2 md:px-5 md:py-3 shadow-[var(--paper-shadow)] hover:border-[#6B8E63] hover:-translate-y-0.5 transition-all duration-300 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#A68BC8]"
                   >
-                    <span dir="ltr">{copy.ctaCompany}</span>
-                    <span aria-hidden="true">{isRtl ? '←' : '→'}</span>
+                    <span
+                      className="flex h-7 w-7 md:h-9 md:w-9 items-center justify-center rounded-xl bg-[#DCE7DD] text-[#355E3B] border border-[#9DB5A0]/50 transition-transform duration-300 group-hover:rotate-6"
+                      aria-hidden="true"
+                    >
+                      <svg viewBox="0 0 28 28" className="h-4 w-4 md:h-5 md:w-5" fill="none">
+                        <path
+                          d="M6 21 C7 11, 14 6, 22 6 C22 14, 17 21, 7 21 Z"
+                          fill="#9DB5A0"
+                          stroke="#2F5233"
+                          strokeWidth="1.8"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M6 21 C11 16, 15 12, 20 8"
+                          stroke="#2F5233"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                    </span>
+                    <span
+                      dir="ltr"
+                      className="font-display text-base sm:text-xl md:text-2xl font-extrabold tracking-[0.14em] uppercase bg-gradient-to-r from-[#2F5233] via-[#6B8E63] to-[#7A4FB0] dark:from-[#BCE0C2] dark:via-[#9DB5A0] dark:to-[#D8BEFF] bg-clip-text text-transparent"
+                    >
+                      {copy.ctaCompany}
+                    </span>
+                    <span
+                      aria-hidden="true"
+                      className="inline-flex h-7 w-7 md:h-8 md:w-8 items-center justify-center rounded-xl bg-[#2D2140] text-[#F5EFE0] dark:bg-[#A68BC8] dark:text-[#1A1328] text-sm md:text-base font-bold transition-transform duration-300 group-hover:translate-x-0.5"
+                    >
+                      {isRtl ? '←' : '→'}
+                    </span>
                   </button>
                 </div>
               </div>
 
               {/* Inline-end: 50% larger stacked arched frames */}
-              <div className="md:col-span-6 flex items-center justify-center mb-2 md:mb-0">
-                <div className="relative h-[250px] w-[215px] sm:h-[360px] sm:w-[305px] md:h-[520px] md:w-[440px] lg:h-[570px] lg:w-[485px]">
+              <div className="md:col-span-6 flex items-center justify-center mb-1 md:mb-0">
+                <div className="relative h-[168px] w-[146px] sm:h-[270px] sm:w-[230px] md:h-[520px] md:w-[440px] lg:h-[570px] lg:w-[485px]">
                   {copy.lines.map((line, idx) => (
                     <div
                       key={line.id}

@@ -18,7 +18,7 @@ export const SceneLanguages: React.FC<SceneLanguagesProps> = ({ lang }) => {
       <div className="mx-auto max-w-3xl">
         <h2
           className="text-center font-display font-semibold text-[var(--ink-primary)]"
-          style={{ fontSize: 'clamp(1.5rem, 2.8vw, 2.2rem)' }}
+          style={{ fontSize: 'clamp(1.25rem, 2.2vw, 1.8rem)' }}
         >
           <span>{copy.titleBefore[lang]}</span>
           <span className="italic text-[#A68BC8]">{copy.titleAccent[lang]}</span>
@@ -32,10 +32,10 @@ export const SceneLanguages: React.FC<SceneLanguagesProps> = ({ lang }) => {
               className="flex items-center justify-between gap-4 rounded-2xl border border-[var(--hairline)] bg-[var(--surface-card)] px-5 py-4 shadow-[var(--paper-shadow)]"
             >
               <div>
-                <div className="font-display text-lg sm:text-xl font-bold text-[var(--ink-primary)]">
+                <div className="font-display text-base sm:text-lg font-bold text-[var(--ink-primary)]">
                   {item.name[lang]}
                 </div>
-                <div className="text-xs sm:text-sm font-medium text-[var(--ink-muted)] mt-0.5">
+                <div className="text-xs font-medium text-[var(--ink-muted)] mt-0.5">
                   {item.levelLabel[lang]}
                 </div>
               </div>

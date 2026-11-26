@@ -62,6 +62,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               aria-hidden="true"
             />
             <span
+              dir="ltr"
               className="font-display text-lg font-semibold tracking-tight text-[var(--ink-primary)] transition-opacity duration-300"
               style={{ opacity: nameLanded ? 1 : 0 }}
             >

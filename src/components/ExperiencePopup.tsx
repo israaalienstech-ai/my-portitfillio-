@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { RotateCcw, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import {
   ExperienceStationData,
   Lang,
@@ -35,12 +35,9 @@ export const ExperiencePopup: React.FC<ExperiencePopupProps> = ({
   const touchStartYRef = useRef<number | null>(null);
   const [touchDragY, setTouchDragY] = useState(0);
 
-  const [cveeezPhase, setCveeezPhase] = useState<'chaos' | 'ask' | 'order' | 'clock'>('chaos');
-  const [cveeezRunKey, setCveeezRunKey] = useState(0);
-  const [clockHours, setClockHours] = useState(0);
-
+  const [cveeezPhase, setCveeezPhase] = useState<'chaos' | 'ask' | 'order' | 'drop'>('chaos');
+  const [dropStepIdx, setDropStepIdx] = useState(0);
   const [xfuseAnimated, setXfuseAnimated] = useState(false);
-  const [careercvMerged, setCareercvMerged] = useState(false);
 
   useEffect(() => {
     if (!station) return;
@@ -76,49 +73,69 @@ export const ExperiencePopup: React.FC<ExperiencePopupProps> = ({
     if (station?.id !== 'cveeez') return;
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (reduced) {
-      setCveeezPhase('clock');
-      setClockHours(4);
+      setCveeezPhase('drop');
+      setDropStepIdx(4);
       return;
     }
 
-    setCveeezPhase('chaos');
-    setClockHours(0);
+    let timers: number[] = [];
+    const runCycle = () => {
+      timers.forEach((id) => window.clearTimeout(id));
+      timers = [];
 
-    const t1 = window.setTimeout(() => setCveeezPhase('ask'), 1900);
-    const t2 = window.setTimeout(() => setCveeezPhase('order'), 3400);
-    const t3 = window.setTimeout(() => {
-      setCveeezPhase('clock');
-      let step = 0;
-      const counter = window.setInterval(() => {
-        step += 1;
-        setClockHours(Math.min(4, step));
-        if (step >= 4) window.clearInterval(counter);
-      }, 220);
-    }, 5100);
+      setCveeezPhase('chaos');
+      setDropStepIdx(0);
+
+      timers.push(window.setTimeout(() => setCveeezPhase('ask'), 450));
+      timers.push(window.setTimeout(() => setCveeezPhase('order'), 1050));
+      timers.push(
+        window.setTimeout(() => {
+          setCveeezPhase('drop');
+          [1, 2, 3, 4].forEach((step, idx) => {
+            timers.push(
+              window.setTimeout(() => {
+                setDropStepIdx(step);
+              }, idx * 280),
+            );
+          });
+        }, 1650),
+      );
+      timers.push(window.setTimeout(runCycle, 6500));
+    };
+
+    runCycle();
 
     return () => {
-      window.clearTimeout(t1);
-      window.clearTimeout(t2);
-      window.clearTimeout(t3);
+      timers.forEach((id) => window.clearTimeout(id));
     };
-  }, [station?.id, cveeezRunKey]);
+  }, [station?.id]);
 
   useEffect(() => {
-    if (station?.id === 'xfuse') {
+    if (station?.id === 'xfuse-sell') {
       setXfuseAnimated(false);
       const t = window.setTimeout(() => setXfuseAnimated(true), 180);
-      return () => window.clearTimeout(t);
-    }
-    if (station?.id === 'careercv') {
-      setCareercvMerged(false);
-      const t = window.setTimeout(() => setCareercvMerged(true), 220);
       return () => window.clearTimeout(t);
     }
   }, [station?.id]);
 
   if (!station) return null;
 
-  const isOrdered = cveeezPhase === 'order' || cveeezPhase === 'clock';
+  const displayKeyAchievements = station.keyAchievements?.[lang];
+  const isOrdered = cveeezPhase === 'order' || cveeezPhase === 'drop';
+  const dropRatios = [1, 0.72, 0.48, 0.28, 0.14];
+  const currentRatio = cveeezPhase === 'drop' ? dropRatios[dropStepIdx] : 1;
+  const currentDashOffset = 238.76 * (1 - currentRatio);
+  const currentStepLabel = copy.cveeezStage.dropSteps[lang][dropStepIdx];
+  const centerGaugeText =
+    dropStepIdx === 0
+      ? isRtl ? 'شهر' : '1 mo'
+      : dropStepIdx === 1
+        ? isRtl ? '١٤ يوم' : '14 d'
+        : dropStepIdx === 2
+          ? isRtl ? '٣ أيام' : '3 d'
+          : dropStepIdx === 3
+            ? isRtl ? '١٢ س' : '12 h'
+            : isRtl ? '٤ س' : '4 h';
 
   return (
     <div
@@ -128,7 +145,7 @@ export const ExperiencePopup: React.FC<ExperiencePopupProps> = ({
       className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-6"
       role="dialog"
       aria-modal="true"
-      aria-label={`${station.company[lang]} — ${station.role}`}
+      aria-label={`${station.company} — ${station.role}`}
       onClick={onClose}
     >
       <div
@@ -141,6 +158,7 @@ export const ExperiencePopup: React.FC<ExperiencePopupProps> = ({
 
       <div
         ref={noteRef}
+        dir={isRtl ? 'rtl' : 'ltr'}
         data-lenis-prevent
         onClick={(e) => e.stopPropagation()}
         onWheel={(e) => e.stopPropagation()}
@@ -157,7 +175,9 @@ export const ExperiencePopup: React.FC<ExperiencePopupProps> = ({
           if (touchDragY > 90) onClose();
           touchStartYRef.current = null;
         }}
-        className="paper-grain-surface relative z-10 w-full max-w-3xl max-h-[88svh] overflow-y-auto overscroll-contain rounded-t-3xl md:rounded-[28px] border border-[var(--hairline)] bg-[var(--surface-card)] p-6 sm:p-8 text-[var(--ink-primary)] shadow-[var(--paper-shadow-lg)] transition-transform duration-300 ease-[cubic-bezier(0.22,0.8,0.3,1)]"
+        className={`paper-grain-surface relative z-10 w-full max-w-3xl max-h-[88svh] overflow-y-auto overscroll-contain rounded-t-3xl md:rounded-[28px] border border-[var(--hairline)] bg-[var(--surface-card)] p-5 sm:p-6.5 text-[var(--ink-primary)] shadow-[var(--paper-shadow-lg)] transition-transform duration-300 ease-[cubic-bezier(0.22,0.8,0.3,1)] ${
+          isRtl ? 'text-right' : 'text-left'
+        }`}
         style={{
           transform: touchDragY > 0
             ? `translate3d(0, ${touchDragY}px, 0)`
@@ -168,9 +188,9 @@ export const ExperiencePopup: React.FC<ExperiencePopupProps> = ({
 
         {/* Header */}
         <div className="flex items-start justify-between gap-4 border-b border-[var(--hairline)] pb-4">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3.5">
             <div
-              className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-2 shadow-sm overflow-hidden ${
+              className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 shadow-sm overflow-hidden ${
                 station.darkLogoBg ? 'bg-[#14161A] p-0' : 'bg-white p-1.5'
               }`}
               style={{ borderColor: station.color }}
@@ -178,7 +198,7 @@ export const ExperiencePopup: React.FC<ExperiencePopupProps> = ({
               {station.logoSrc ? (
                 <img
                   src={station.logoSrc}
-                  alt={station.company[lang]}
+                  alt={station.company}
                   className={`h-full w-full rounded-full ${
                     station.darkLogoBg ? 'object-cover' : 'object-contain'
                   }`}
@@ -190,12 +210,16 @@ export const ExperiencePopup: React.FC<ExperiencePopupProps> = ({
               )}
             </div>
             <div>
-              <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm font-medium text-[var(--ink-muted)]">
-                <span style={{ color: station.color }} className="font-bold tracking-wider uppercase">
-                  {station.company[lang]}
+              <div className="flex flex-wrap items-center gap-2 text-[11px] font-medium text-[var(--ink-muted)]">
+                <span dir="ltr" style={{ color: station.color }} className="font-bold tracking-wider uppercase">
+                  {station.company}
                 </span>
-                <span aria-hidden="true">·</span>
-                <span>{station.dates[lang]}</span>
+                {station.dates && (
+                  <>
+                    <span aria-hidden="true">·</span>
+                    <span dir="ltr">{station.dates}</span>
+                  </>
+                )}
                 {station.companySubtitle && (
                   <>
                     <span aria-hidden="true">·</span>
@@ -205,7 +229,7 @@ export const ExperiencePopup: React.FC<ExperiencePopupProps> = ({
               </div>
               <h3
                 dir="ltr"
-                className={`mt-1 font-display text-2xl sm:text-3xl font-semibold text-[var(--ink-primary)] ${
+                className={`mt-1 font-display text-base sm:text-lg font-semibold text-[var(--ink-primary)] ${
                   isRtl ? 'text-right' : 'text-left'
                 }`}
               >
@@ -218,54 +242,26 @@ export const ExperiencePopup: React.FC<ExperiencePopupProps> = ({
             type="button"
             onClick={onClose}
             aria-label={copy.closeLabel[lang]}
-            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--hairline)] bg-[var(--surface-cream)] text-[var(--ink-primary)] hover:border-[#A68BC8] transition-colors"
+            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[var(--hairline)] bg-[var(--surface-cream)] text-[var(--ink-primary)] hover:border-[#A68BC8] transition-colors"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
-        {/* Highlight headline + chips */}
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-          <p className="font-display italic text-xl sm:text-2xl text-[var(--ink-primary)]">
-            “{station.headline[lang]}”
-          </p>
-          {station.extraChips && station.extraChips.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {station.extraChips.map((chip) => (
-                <span
-                  key={chip.en}
-                  className="rounded-full px-3.5 py-1.5 text-xs sm:text-sm font-semibold text-[#2D2140]"
-                  style={{ backgroundColor: station.softColor }}
-                >
-                  {chip[lang]}
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* CVeeeZ Embedded 7s Chaos-to-Order Stage */}
+        {/* CVeeeZ Auto-Playing Chaos-to-Order Stage */}
         {station.id === 'cveeez' && (
-          <div className="mt-5 rounded-2xl border border-[var(--hairline)] bg-[var(--surface-cream)] p-4 overflow-hidden">
-            <div className="flex items-center justify-between gap-2 mb-3">
-              <p className="text-sm sm:text-base font-semibold text-[var(--ink-primary)]">
+          <div className="mt-4 rounded-2xl border border-[var(--hairline)] bg-[var(--surface-cream)] p-3.5 overflow-hidden">
+            <div className="flex items-center justify-between gap-2 mb-2.5">
+              <p className="text-xs sm:text-[13px] font-semibold text-[var(--ink-primary)]">
                 {cveeezPhase === 'chaos' && copy.cveeezStage.captionChaos[lang]}
                 {cveeezPhase === 'ask' && copy.cveeezStage.captionAsk[lang]}
-                {(cveeezPhase === 'order' || cveeezPhase === 'clock') &&
+                {(cveeezPhase === 'order' || cveeezPhase === 'drop') &&
                   copy.cveeezStage.captionOrder[lang]}
               </p>
-              <button
-                type="button"
-                onClick={() => setCveeezRunKey((k) => k + 1)}
-                className="inline-flex items-center gap-1.5 rounded-full border border-[var(--hairline)] bg-[var(--surface-card)] px-3.5 py-1.5 text-xs font-semibold text-[var(--ink-secondary)] hover:text-[var(--ink-primary)] shrink-0"
-              >
-                <RotateCcw className="h-3.5 w-3.5" />
-                <span>{copy.cveeezStage.replay[lang]}</span>
-              </button>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
-              <div className="relative sm:col-span-8 h-48 rounded-xl border border-[var(--hairline)] bg-[var(--surface-card)]/75 overflow-hidden p-3">
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center" dir="ltr">
+              <div className="relative sm:col-span-8 h-42 rounded-xl border border-[var(--hairline)] bg-[var(--surface-card)]/75 overflow-hidden p-3">
                 <svg
                   viewBox="0 0 360 160"
                   className="pointer-events-none absolute inset-0 h-full w-full"
@@ -296,7 +292,7 @@ export const ExperiencePopup: React.FC<ExperiencePopupProps> = ({
                 {CVEEEZ_CARDS.map((card, i) => {
                   const col = i % 3;
                   const row = Math.floor(i / 3);
-                  const targetLeft = isRtl ? 68 - col * 31 : 5 + col * 31;
+                  const targetLeft = 5 + col * 31;
                   const targetTop = 10 + row * 45;
 
                   return (
@@ -317,10 +313,13 @@ export const ExperiencePopup: React.FC<ExperiencePopupProps> = ({
                     >
                       <div className="h-1.5 w-3/4 rounded-full bg-[var(--ink-muted)]/25" />
                       <span
-                        className="inline-block self-start rounded px-1.5 py-0.5 text-[10px] font-bold"
+                        className={`inline-block self-start rounded px-1.5 py-0.5 text-[10px] font-bold ${
+                          isOrdered
+                            ? 'text-[#3F6345] dark:text-[#BCE0C2]'
+                            : 'text-[#A14635] dark:text-[#FFB3A7]'
+                        }`}
                         style={{
-                          backgroundColor: isOrdered ? 'rgba(157,181,160,0.28)' : 'rgba(231,144,122,0.2)',
-                          color: isOrdered ? '#3F6345' : '#A14635',
+                          backgroundColor: isOrdered ? 'rgba(157,181,160,0.28)' : 'rgba(231,144,122,0.22)',
                         }}
                       >
                         {isOrdered
@@ -332,118 +331,133 @@ export const ExperiencePopup: React.FC<ExperiencePopupProps> = ({
                 })}
               </div>
 
-              <div className="sm:col-span-4 flex flex-col items-center justify-center rounded-xl border border-[var(--hairline)] bg-[var(--surface-card)]/75 p-3 h-48">
-                <svg viewBox="0 0 100 100" className="h-24 w-24">
-                  <circle cx="50" cy="50" r="38" fill="none" stroke="rgba(166,139,200,0.22)" strokeWidth="7" />
+              <div className="sm:col-span-4 flex flex-col items-center justify-center rounded-xl border border-[var(--hairline)] bg-[var(--surface-card)]/75 p-3 h-42">
+                <svg viewBox="0 0 100 100" className="h-18 w-18">
+                  <circle cx="50" cy="50" r="38" fill="none" stroke="rgba(166,139,200,0.2)" strokeWidth="7" />
                   <circle
                     cx="50"
                     cy="50"
                     r="38"
                     fill="none"
-                    stroke="#9DB5A0"
+                    stroke={cveeezPhase === 'drop' && dropStepIdx >= 2 ? '#9DB5A0' : '#E7907A'}
                     strokeWidth="7"
                     strokeLinecap="round"
                     strokeDasharray="238.76"
-                    strokeDashoffset={cveeezPhase === 'clock' ? 238.76 - 59.7 : 238.76}
+                    strokeDashoffset={currentDashOffset}
                     transform="rotate(-90 50 50)"
-                    style={{ transition: 'stroke-dashoffset 1100ms cubic-bezier(0.22,0.8,0.3,1)' }}
+                    style={{ transition: 'stroke-dashoffset 450ms cubic-bezier(0.22,0.8,0.3,1), stroke 450ms ease' }}
                   />
                   <text
                     x="50"
                     y="55"
                     textAnchor="middle"
-                    className="fill-[var(--ink-primary)] font-display text-xl font-bold"
+                    className="fill-[var(--ink-primary)] font-display text-base font-bold"
                     style={{ fontVariantNumeric: 'tabular-nums' }}
                   >
-                    {clockHours}
+                    {centerGaugeText}
                   </text>
                 </svg>
-                <span className="mt-1 text-sm font-semibold text-[var(--ink-secondary)]">
-                  {clockHours} {copy.cveeezStage.clockSuffix[lang]}
+                <span className="mt-1 text-xs font-semibold text-[var(--ink-secondary)]">
+                  {currentStepLabel}
                 </span>
               </div>
             </div>
           </div>
         )}
 
-        {/* Challenge, What I did, Result (omitted for Career CV) */}
-        <div className="mt-6 space-y-5">
+        {/* Role Overview, Key Responsibilities, Key Achievements (when provided), Skills Demonstrated */}
+        <div className="mt-4 space-y-3.5">
           <div>
-            <h4 className="text-xs sm:text-sm font-bold uppercase tracking-wider" style={{ color: station.color }}>
-              {copy.blocks.challenge[lang]}
+            <h4 className="text-[11px] font-bold uppercase tracking-wider" style={{ color: station.color }}>
+              {copy.blocks.roleOverview[lang]}
             </h4>
-            <p className="mt-1.5 text-base sm:text-lg leading-relaxed text-[var(--ink-secondary)]">
-              {station.challenge[lang]}
+            <p className="mt-1 text-xs sm:text-[13.5px] leading-relaxed text-[var(--ink-secondary)]">
+              {station.roleOverview[lang]}
             </p>
           </div>
 
           <div>
-            <h4 className="text-xs sm:text-sm font-bold uppercase tracking-wider" style={{ color: station.color }}>
-              {copy.blocks.whatIDid[lang]}
+            <h4 className="text-[11px] font-bold uppercase tracking-wider" style={{ color: station.color }}>
+              {copy.blocks.responsibilities[lang]}
             </h4>
-            <p className="mt-1.5 text-base sm:text-lg leading-relaxed text-[var(--ink-secondary)]">
-              {station.whatIDid[lang]}
-            </p>
+            <ul className="mt-1.5 space-y-1 text-xs sm:text-[13px] leading-relaxed text-[var(--ink-secondary)]">
+              {station.responsibilities[lang].map((item) => (
+                <li key={item} className="flex items-start gap-2">
+                  <span
+                    className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full"
+                    style={{ backgroundColor: station.color }}
+                    aria-hidden="true"
+                  />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
           </div>
 
-          {station.result && (
+          {displayKeyAchievements && displayKeyAchievements.length > 0 && (
             <div>
-              <h4 className="text-xs sm:text-sm font-bold uppercase tracking-wider" style={{ color: station.color }}>
-                {copy.blocks.result[lang]}
+              <h4 className="text-[11px] font-bold uppercase tracking-wider" style={{ color: station.color }}>
+                {copy.blocks.keyAchievements[lang]}
               </h4>
-              <p className="mt-1.5 text-base sm:text-lg leading-relaxed text-[var(--ink-primary)] font-medium">
-                {station.result[lang]}
-              </p>
+              <ul className="mt-1.5 space-y-1 text-xs sm:text-[13px] leading-relaxed text-[var(--ink-primary)] font-medium">
+                {displayKeyAchievements.map((item) => (
+                  <li key={item} className="flex items-start gap-2">
+                    <span
+                      className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full"
+                      style={{ backgroundColor: station.color }}
+                      aria-hidden="true"
+                    />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
-        </div>
 
-        {/* FERTICAL Metric Snapshot Trio */}
-        {station.id === 'fertical' && (
-          <div className="mt-6 grid grid-cols-3 gap-3">
-            {[
-              { title: '1,000+', sub: lang === 'ar' ? 'منتج في 3 شهور' : 'Units in 3 months', tint: '#E4D8F0' },
-              { title: '+80%', sub: lang === 'ar' ? 'نمو المبيعات' : 'Sales growth', tint: '#DCE7DD' },
-              { title: '€4,000', sub: lang === 'ar' ? 'تمويل للشركة' : 'Raised for startup', tint: '#F6E6CB' },
-            ].map((item) => (
-              <div
-                key={item.title}
-                className="rounded-2xl border border-[var(--hairline)] p-4 text-center text-[#2D2140]"
-                style={{ backgroundColor: item.tint }}
-              >
-                <div className="font-display text-xl sm:text-2xl font-bold">{item.title}</div>
-                <div className="mt-1 text-xs font-medium opacity-80">{item.sub}</div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* X-FUSE Growth Stages & ClickUp Mini-Board */}
-        {station.id === 'xfuse' && (
-          <div className="mt-6 space-y-4">
-            <div className="grid grid-cols-3 gap-3">
+          {/* FERTICAL Metric Snapshot Trio */}
+          {station.id === 'fertical' && (
+            <div className="pt-1 grid grid-cols-3 gap-2.5">
               {[
-                { label: lang === 'ar' ? 'الشهر 1: فشل' : 'Month 1: Miss', ringPct: 12, opacity: 0.7 },
-                { label: lang === 'ar' ? 'الشهر 2: 70%' : 'Month 2 — 70%', ringPct: 70, opacity: 0.92 },
-                { label: lang === 'ar' ? 'الشهر 3: 120%' : 'Month 3 — 120%', ringPct: 100, opacity: 1 },
+                { title: '1,000+', sub: isRtl ? 'وحدة في 3 شهور' : 'Units in 3 months', tint: '#E4D8F0' },
+                { title: '+80%', sub: isRtl ? 'نمو المبيعات' : 'Sales growth', tint: '#DCE7DD' },
+                { title: '€4,000', sub: isRtl ? 'تمويل ستارت أب' : 'Startup funding', tint: '#F6E6CB' },
+              ].map((item) => (
+                <div
+                  key={item.title}
+                  className="rounded-2xl border border-[var(--hairline)] p-2.5 text-center text-[#2D2140]"
+                  style={{ backgroundColor: item.tint }}
+                >
+                  <div dir="ltr" className="font-display text-base sm:text-lg font-bold">{item.title}</div>
+                  <div className="mt-0.5 text-[10.5px] font-medium opacity-80">{item.sub}</div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* X-FUSE Sales Target Growth Rings (Sales & Marketing Executive station) */}
+          {station.id === 'xfuse-sell' && (
+            <div className="pt-1 grid grid-cols-2 gap-3">
+              {[
+                { label: isRtl ? 'الشهر الأول — 70%' : 'Month 1 — 70%', ringPct: 70, opacity: 0.9 },
+                { label: isRtl ? 'الشهر الثاني — 120%' : 'Month 2 — 120%', ringPct: 100, opacity: 1 },
               ].map((m, idx) => (
                 <div
                   key={m.label}
-                  className="flex flex-col items-center rounded-2xl border border-[var(--hairline)] bg-[var(--surface-cream)] p-4 text-center"
+                  className="flex flex-col items-center rounded-2xl border border-[var(--hairline)] bg-[var(--surface-cream)] p-3 text-center"
                   style={{
                     opacity: m.opacity,
-                    transform: xfuseAnimated && idx === 2 ? 'scale(1.03)' : 'scale(1)',
+                    transform: xfuseAnimated && idx === 1 ? 'scale(1.02)' : 'scale(1)',
                     transition: 'transform 700ms cubic-bezier(0.34,1.3,0.5,1)',
                   }}
                 >
-                  <svg viewBox="0 0 64 64" className="h-14 w-14">
+                  <svg viewBox="0 0 64 64" className="h-12 w-12">
                     <circle cx="32" cy="32" r="24" fill="none" stroke="rgba(157,181,160,0.22)" strokeWidth="5.5" />
                     <circle
                       cx="32"
                       cy="32"
                       r="24"
                       fill="none"
-                      stroke={idx === 0 ? '#E7907A' : '#9DB5A0'}
+                      stroke="#9DB5A0"
                       strokeWidth="5.5"
                       strokeLinecap="round"
                       strokeDasharray="150.8"
@@ -454,56 +468,28 @@ export const ExperiencePopup: React.FC<ExperiencePopupProps> = ({
                       style={{ transition: 'stroke-dashoffset 950ms cubic-bezier(0.22,0.8,0.3,1)' }}
                     />
                   </svg>
-                  <span className="mt-2 text-xs sm:text-sm font-semibold text-[var(--ink-primary)]">{m.label}</span>
+                  <span className="mt-1.5 text-xs font-semibold text-[var(--ink-primary)]">{m.label}</span>
                 </div>
               ))}
             </div>
+          )}
 
-            {/* Clean ClickUp Delivery Board Snapshot */}
-            <div className="rounded-2xl border border-[var(--hairline)] bg-[var(--surface-cream)] p-4">
-              <div className="grid grid-cols-4 gap-2 text-center text-[11px] sm:text-xs font-semibold text-[#2D2140]">
-                {[
-                  { name: lang === 'ar' ? 'قيد المراجعة' : 'In Review', bg: '#E4D8F0' },
-                  { name: lang === 'ar' ? 'تعديلات' : 'In Edits', bg: '#F7DCD4' },
-                  { name: lang === 'ar' ? 'خلص' : 'Done', bg: '#DCE7DD' },
-                  { name: lang === 'ar' ? 'جاهز للنشر' : 'Ready', bg: '#F6E6CB' },
-                ].map((col) => (
-                  <div key={col.name} className="rounded-xl p-2.5 shadow-xs" style={{ backgroundColor: col.bg }}>
-                    {col.name}
-                  </div>
-                ))}
-              </div>
+          <div className="pt-2 border-t border-[var(--hairline)]">
+            <h4 className="text-[11px] font-bold uppercase tracking-wider" style={{ color: station.color }}>
+              {copy.blocks.skillsDemonstrated[lang]}
+            </h4>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {station.skillsDemonstrated[lang].map((skill) => (
+                <span
+                  key={skill}
+                  className="rounded-xl border border-[var(--hairline)] bg-[var(--surface-cream)] px-2.5 py-1 text-[11px] font-medium text-[var(--ink-primary)]"
+                >
+                  {skill}
+                </span>
+              ))}
             </div>
           </div>
-        )}
-
-        {/* Career CV Smooth Overlapping Circles */}
-        {station.id === 'careercv' && (
-          <div className="mt-6 flex items-center justify-center rounded-2xl border border-[var(--hairline)] bg-[var(--surface-cream)] py-6 px-4 overflow-hidden">
-            <div className="flex items-center justify-center">
-              <div
-                className="flex h-28 w-28 items-center justify-center rounded-full border border-[#A68BC8]/45 bg-[#E4D8F0]/80 text-xs font-bold text-[#2D2140] transition-transform duration-1000 ease-[cubic-bezier(0.22,0.8,0.3,1)]"
-                style={{
-                  transform: careercvMerged
-                    ? `translate3d(${isRtl ? '-16px' : '16px'}, 0, 0)`
-                    : `translate3d(${isRtl ? '34px' : '-34px'}, 0, 0)`,
-                }}
-              >
-                {lang === 'ar' ? 'الاحتياج' : 'Need'}
-              </div>
-              <div
-                className="flex h-28 w-28 items-center justify-center rounded-full border border-[#E3B26E]/55 bg-[#F6E6CB]/85 text-xs font-bold text-[#2D2140] transition-transform duration-1000 ease-[cubic-bezier(0.22,0.8,0.3,1)] mix-blend-multiply dark:mix-blend-screen"
-                style={{
-                  transform: careercvMerged
-                    ? `translate3d(${isRtl ? '16px' : '-16px'}, 0, 0)`
-                    : `translate3d(${isRtl ? '-34px' : '34px'}, 0, 0)`,
-                }}
-              >
-                {lang === 'ar' ? 'الخدمة' : 'Service'}
-              </div>
-            </div>
-          </div>
-        )}
+        </div>
 
         <style>{`
           @keyframes stuckJitter {

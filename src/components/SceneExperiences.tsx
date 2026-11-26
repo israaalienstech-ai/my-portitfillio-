@@ -36,8 +36,8 @@ interface FlyingBatch {
   endY: number;
 }
 
-const WORLD_HEIGHT = 2400;
-const STATION_WORLD_Y = [400, 940, 1480, 2020];
+const WORLD_HEIGHT = 2940;
+const STATION_WORLD_Y = [400, 940, 1480, 2020, 2560];
 
 export const SceneExperiences: React.FC<SceneExperiencesProps> = ({
   lang,
@@ -58,11 +58,13 @@ export const SceneExperiences: React.FC<SceneExperiencesProps> = ({
   const bridgeRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   const [activeStationIndex, setActiveStationIndex] = useState(0);
-  const [xfuseTab, setXfuseTab] = useState<'lead' | 'sell'>('lead');
+  const [reachedStations, setReachedStations] = useState<boolean[]>([false, false, false, false, false]);
+  const [collectedStationsCount, setCollectedStationsCount] = useState(0);
   const [pocketPulse, setPocketPulse] = useState(false);
   const [flyingBatches, setFlyingBatches] = useState<FlyingBatch[]>([]);
   const [popupStation, setPopupStation] = useState<ExperienceStationData | null>(null);
 
+  const reachedRef = useRef<boolean[]>([false, false, false, false, false]);
   const chimedStationsRef = useRef<Set<number>>(new Set());
   const pocketedStationsRef = useRef<Set<number>>(new Set());
   const batchIdRef = useRef(0);
@@ -127,13 +129,15 @@ export const SceneExperiences: React.FC<SceneExperiencesProps> = ({
        C 440 600, 1000 710, 1000 940
        C 1000 1160, 420 1260, 420 1480
        C 420 1710, 990 1800, 990 2020
-       C 990 2200, 720 2290, 720 ${WORLD_HEIGHT}`
+       C 990 2250, 440 2340, 440 2560
+       C 440 2740, 720 2830, 720 ${WORLD_HEIGHT}`
     : `M 720 0
        C 720 150, 1000 250, 1000 400
        C 1000 600, 440 710, 440 940
        C 440 1160, 1020 1260, 1020 1480
        C 1020 1710, 450 1800, 450 2020
-       C 450 2200, 720 2290, 720 ${WORLD_HEIGHT}`;
+       C 450 2250, 1000 2340, 1000 2560
+       C 1000 2740, 720 2830, 720 ${WORLD_HEIGHT}`;
 
   useLayoutEffect(() => {
     const outer = outerRef.current;
@@ -146,6 +150,8 @@ export const SceneExperiences: React.FC<SceneExperiencesProps> = ({
     if (reduced) {
       roadPath.style.strokeDasharray = `${totalLen}`;
       roadPath.style.strokeDashoffset = '0';
+      reachedRef.current = [true, true, true, true, true];
+      setReachedStations([true, true, true, true, true]);
       onCollectedCountChange(16);
       return;
     }
@@ -185,7 +191,14 @@ export const SceneExperiences: React.FC<SceneExperiencesProps> = ({
             }
 
             let currentStation = 0;
+            const nextReached = [...reachedRef.current];
+            let reachedChanged = false;
             for (let i = 0; i < STATION_WORLD_Y.length; i++) {
+              const isReached = pt.y >= STATION_WORLD_Y[i] - 70;
+              if (nextReached[i] !== isReached) {
+                nextReached[i] = isReached;
+                reachedChanged = true;
+              }
               if (pt.y >= STATION_WORLD_Y[i] - 120) {
                 currentStation = i;
                 if (!chimedStationsRef.current.has(i) && self.direction > 0) {
@@ -193,6 +206,10 @@ export const SceneExperiences: React.FC<SceneExperiencesProps> = ({
                   soundSystem.stationBloom(i);
                 }
               }
+            }
+            if (reachedChanged) {
+              reachedRef.current = nextReached;
+              setReachedStations(nextReached);
             }
             setActiveStationIndex(currentStation);
 
@@ -207,6 +224,7 @@ export const SceneExperiences: React.FC<SceneExperiencesProps> = ({
                 }
               }
             }
+            setCollectedStationsCount(completedStations);
             onCollectedCountChange(completedStations * 4);
 
             onDebugUpdate(p, `station-${EXPERIENCE_STATIONS[currentStation].id}`);
@@ -214,24 +232,24 @@ export const SceneExperiences: React.FC<SceneExperiencesProps> = ({
         },
       });
 
-      const stationStarts = [0.06, 0.31, 0.56, 0.8];
+      const stationStarts = [0.04, 0.23, 0.43, 0.63, 0.82];
       stationRefs.current.forEach((el, idx) => {
         if (!el) return;
         tl.fromTo(
           el,
-          { opacity: 0.25, scale: 0.9, y: 24 },
-          { opacity: 1, scale: 1, y: 0, duration: 0.12, ease: 'back.out(1.3)' },
+          { opacity: 0.15, scale: 0.92, y: 18 },
+          { opacity: 1, scale: 1, y: 0, duration: 0.09, ease: 'back.out(1.2)' },
           stationStarts[idx],
         );
       });
 
-      const bridgeStarts = [0.22, 0.47, 0.72];
+      const bridgeStarts = [0.16, 0.36, 0.56, 0.75];
       bridgeRefs.current.forEach((el, idx) => {
         if (!el) return;
         tl.fromTo(
           el,
           { opacity: 0, y: 18 },
-          { opacity: 1, y: 0, duration: 0.08, ease: 'power2.out' },
+          { opacity: 1, y: 0, duration: 0.07, ease: 'power2.out' },
           bridgeStarts[idx],
         );
       });
@@ -249,18 +267,11 @@ export const SceneExperiences: React.FC<SceneExperiencesProps> = ({
     onPopupOpenChange?.(Boolean(popupStation));
   }, [popupStation, onPopupOpenChange]);
 
-  const getStationAchievements = (st: ExperienceStationData) => {
-    if (st.tabs) {
-      return xfuseTab === 'lead' ? st.tabs.lead.slice(0, 3) : st.tabs.sell.slice(0, 3);
-    }
-    return st.achievements.slice(0, 3);
-  };
-
   return (
     <section
       id="scene-experiences"
       ref={outerRef}
-      className="relative z-10 h-[560svh] w-full paper-grain-surface"
+      className="relative z-10 h-[640svh] w-full paper-grain-surface"
       style={{ backgroundColor: 'var(--surface-cream)' }}
       aria-label="Experiences roadmap"
     >
@@ -306,12 +317,11 @@ export const SceneExperiences: React.FC<SceneExperiencesProps> = ({
               <PaperPlaneArt className="h-9 w-12 drop-shadow-sm" />
             </div>
 
-            {/* 4 Stations + Bridges */}
+            {/* 5 Stations + Bridges */}
             {EXPERIENCE_STATIONS.map((st, idx) => {
               const isEven = idx % 2 === 0;
               const alignRightOnDesktop = isRtl ? isEven : !isEven;
               const worldY = STATION_WORLD_Y[idx];
-              const displayedAchievements = getStationAchievements(st);
 
               return (
                 <React.Fragment key={st.id}>
@@ -321,7 +331,7 @@ export const SceneExperiences: React.FC<SceneExperiencesProps> = ({
                       className="hidden md:flex absolute inset-x-0 justify-center px-8"
                       style={{ top: `${worldY - 245}px` }}
                     >
-                      <p className="max-w-xl rounded-2xl border border-[var(--hairline)] bg-[var(--surface-card)]/94 px-7 py-3.5 text-center font-display italic text-lg lg:text-xl text-[var(--ink-primary)] shadow-xs">
+                      <p className="max-w-xl rounded-2xl border border-[var(--hairline)] bg-[var(--surface-card)]/94 px-6 py-3 text-center font-display italic text-sm lg:text-[15px] text-[var(--ink-primary)] shadow-xs">
                         {st.bridgeBefore[lang]}
                       </p>
                     </div>
@@ -337,10 +347,10 @@ export const SceneExperiences: React.FC<SceneExperiencesProps> = ({
                     }`}
                     style={{ top: `${worldY - 145}px` }}
                   >
-                    {/* Medallion + dashed date pill */}
+                    {/* Medallion + optional dashed date pill */}
                     <div className="flex flex-col items-center shrink-0">
                       <div
-                        className={`soft-float-idle relative flex h-28 w-28 lg:h-32 lg:w-32 items-center justify-center rounded-full border-[3px] shadow-[var(--paper-shadow)] overflow-hidden ${
+                        className={`soft-float-idle relative flex h-26 w-26 lg:h-30 lg:w-30 items-center justify-center rounded-full border-[3px] shadow-[var(--paper-shadow)] overflow-hidden ${
                           st.darkLogoBg ? 'bg-[#14161A] p-0' : 'bg-white p-2'
                         }`}
                         style={{ borderColor: st.color }}
@@ -348,7 +358,7 @@ export const SceneExperiences: React.FC<SceneExperiencesProps> = ({
                         {st.logoSrc ? (
                           <img
                             src={st.logoSrc}
-                            alt={st.company[lang]}
+                            alt={st.company}
                             className={`h-full w-full rounded-full ${
                               st.darkLogoBg ? 'object-cover' : 'object-contain'
                             }`}
@@ -360,82 +370,72 @@ export const SceneExperiences: React.FC<SceneExperiencesProps> = ({
                         )}
                       </div>
 
-                      <span
-                        className="mt-3 rounded-full border border-dashed px-3.5 py-1 text-xs sm:text-sm font-medium text-[var(--ink-secondary)] bg-[var(--surface-card)]/95 whitespace-nowrap"
-                        style={{ borderColor: st.color }}
-                      >
-                        {st.dates[lang]}
-                      </span>
+                      {st.dates && (
+                        <span
+                          dir="ltr"
+                          className="mt-2.5 rounded-full border border-dashed px-3 py-0.5 text-[11px] font-medium text-[var(--ink-secondary)] bg-[var(--surface-card)]/95 whitespace-nowrap"
+                          style={{ borderColor: st.color }}
+                        >
+                          {st.dates}
+                        </span>
+                      )}
                     </div>
 
-                    {/* Station Card */}
-                    <div className="w-[410px] lg:w-[480px] rounded-[26px] border border-[var(--hairline)] bg-[var(--surface-card)] p-5 lg:p-6 shadow-[var(--paper-shadow)]">
-                      <div className="flex items-center justify-between gap-3 mb-2">
+                    {/* Station Card — stays hidden until plane reaches station circle */}
+                    <div
+                      dir={isRtl ? 'rtl' : 'ltr'}
+                      className={`w-[395px] lg:w-[460px] rounded-[24px] border border-[var(--hairline)] bg-[var(--surface-card)] p-4.5 lg:p-5 shadow-[var(--paper-shadow)] transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+                        isRtl ? 'text-right' : 'text-left'
+                      }`}
+                      style={{
+                        opacity: reachedStations[idx] ? 1 : 0,
+                        transform: reachedStations[idx]
+                          ? 'translate3d(0, 0, 0) scale(1)'
+                          : `translate3d(${alignRightOnDesktop ? '18px' : '-18px'}, 14px, 0) scale(0.9)`,
+                        pointerEvents: reachedStations[idx] ? 'auto' : 'none',
+                      }}
+                    >
+                      <div className="flex items-center justify-between gap-3 mb-1.5">
                         <div className="flex items-center gap-1.5" aria-hidden="true">
-                          {[0, 1, 2, 3].map((dotIdx) => (
+                          {[0, 1, 2, 3, 4].map((dotIdx) => (
                             <span
                               key={dotIdx}
                               className="h-2 rounded-full transition-all"
                               style={{
-                                width: dotIdx === idx ? '20px' : '8px',
+                                width: dotIdx === idx ? '18px' : '7px',
                                 backgroundColor: dotIdx === idx ? st.color : 'rgba(166,139,200,0.28)',
                               }}
                             />
                           ))}
                         </div>
-                        <span className="text-xs font-bold uppercase tracking-[0.14em]" style={{ color: st.color }}>
-                          {st.company[lang]}
+                        <span
+                          dir="ltr"
+                          className="text-[11px] font-bold uppercase tracking-[0.14em]"
+                          style={{ color: st.color }}
+                        >
+                          {st.company}
                         </span>
                       </div>
 
                       <h3
                         dir="ltr"
-                        className={`font-display text-lg lg:text-xl font-semibold leading-snug text-[var(--ink-primary)] ${
+                        className={`font-display text-[15px] lg:text-[17px] font-semibold leading-snug text-[var(--ink-primary)] ${
                           isRtl ? 'text-right' : 'text-left'
                         }`}
                       >
                         {st.role}
                       </h3>
 
-                      {/* X-FUSE interactive Lead / Sell tabs inside one station */}
-                      {st.tabs && (
-                        <div
-                          className="mt-3 inline-flex rounded-full border border-[var(--hairline)] bg-[var(--surface-cream)] p-1"
-                          role="tablist"
-                          aria-label="X-FUSE tracks"
-                        >
-                          {(['lead', 'sell'] as const).map((tabKey) => {
-                            const active = xfuseTab === tabKey;
-                            return (
-                              <button
-                                key={tabKey}
-                                type="button"
-                                role="tab"
-                                aria-selected={active}
-                                onClick={() => setXfuseTab(tabKey)}
-                                className={`rounded-full px-4 py-1 text-xs font-bold transition-colors ${
-                                  active
-                                    ? 'bg-[#2D2140] text-[#F5EFE0] dark:bg-[#A68BC8] dark:text-[#1A1328]'
-                                    : 'text-[var(--ink-secondary)] hover:text-[var(--ink-primary)]'
-                                }`}
-                              >
-                                {tabKey === 'lead' ? copy.tabLead[lang] : copy.tabSell[lang]}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      )}
-
-                      {/* Up to 3 Achievements directly on card */}
-                      <ul className="mt-3.5 space-y-2">
-                        {displayedAchievements.map((ach, aIdx) => (
+                      {/* 3 concise highlights directly on card */}
+                      <ul className="mt-3 space-y-1.5">
+                        {st.achievements.slice(0, 3).map((ach, aIdx) => (
                           <li
-                            key={`${st.id}-${xfuseTab}-${aIdx}`}
-                            className="flex items-start gap-2.5 rounded-xl border border-[var(--hairline)] bg-[var(--surface-cream)]/75 px-3 py-2 text-xs lg:text-sm leading-snug text-[var(--ink-primary)]"
+                            key={`${st.id}-${aIdx}`}
+                            className="flex items-start gap-2 rounded-xl border border-[var(--hairline)] bg-[var(--surface-cream)]/75 px-3 py-1.5 text-xs leading-snug text-[var(--ink-primary)]"
                           >
                             <span
                               dir="ltr"
-                              className="shrink-0 rounded-md px-2 py-0.5 text-[11px] font-bold text-[#2D2140]"
+                              className="shrink-0 rounded-md px-2 py-0.5 text-[10.5px] font-bold text-[#2D2140]"
                               style={{ backgroundColor: st.softColor }}
                             >
                               {ach.badge}
@@ -445,11 +445,12 @@ export const SceneExperiences: React.FC<SceneExperiencesProps> = ({
                         ))}
                       </ul>
 
-                      <div className="mt-4 flex justify-end">
+                      <div className="mt-3.5 flex justify-end">
                         <button
                           type="button"
                           onClick={() => openDetailsPopup(st)}
-                          className="rounded-full bg-[#2D2140] px-5 py-2.5 text-xs sm:text-sm font-semibold text-[#F5EFE0] hover:bg-[#41305C] dark:bg-[#A68BC8] dark:text-[#1A1328] whitespace-nowrap shrink-0 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#A68BC8]"
+                          dir="ltr"
+                          className="rounded-full bg-[#2D2140] px-4.5 py-2 text-xs font-semibold text-[#F5EFE0] hover:bg-[#41305C] dark:bg-[#A68BC8] dark:text-[#1A1328] whitespace-nowrap shrink-0 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#A68BC8]"
                         >
                           {copy.openFile[lang]}
                         </button>
@@ -464,32 +465,40 @@ export const SceneExperiences: React.FC<SceneExperiencesProps> = ({
           {/* Mobile responsive vertical card deck */}
           <div className="md:hidden absolute inset-0 flex flex-col justify-center px-4 pt-18 pb-22">
             {(() => {
-              const st = EXPERIENCE_STATIONS[activeStationIndex];
-              const displayedAchievements = getStationAchievements(st);
+              const st = EXPERIENCE_STATIONS[activeStationIndex] ?? EXPERIENCE_STATIONS[0];
               return (
-                <div className="rounded-3xl border border-[var(--hairline)] bg-[var(--surface-card)] p-4 sm:p-5 shadow-[var(--paper-shadow)]">
+                <div
+                  dir={isRtl ? 'rtl' : 'ltr'}
+                  className={`rounded-3xl border border-[var(--hairline)] bg-[var(--surface-card)] p-4 sm:p-5 shadow-[var(--paper-shadow)] ${
+                    isRtl ? 'text-right' : 'text-left'
+                  }`}
+                >
                   <div className="flex items-center justify-between gap-2 mb-3">
                     <div className="flex items-center gap-1.5">
-                      {[0, 1, 2, 3].map((dotIdx) => (
+                      {EXPERIENCE_STATIONS.map((dotSt, dotIdx) => (
                         <button
-                          key={dotIdx}
+                          key={dotSt.id}
                           type="button"
                           onClick={() => setActiveStationIndex(dotIdx)}
-                          aria-label={EXPERIENCE_STATIONS[dotIdx].company[lang]}
+                          aria-label={`${dotSt.company} — ${dotSt.role}`}
                           className="h-2.5 rounded-full transition-all"
                           style={{
-                            width: dotIdx === activeStationIndex ? '20px' : '10px',
+                            width: dotIdx === activeStationIndex ? '18px' : '9px',
                             backgroundColor: dotIdx === activeStationIndex ? st.color : 'rgba(166,139,200,0.3)',
                           }}
                         />
                       ))}
                     </div>
-                    <span className="text-xs font-medium text-[var(--ink-muted)]">{st.dates[lang]}</span>
+                    {st.dates && (
+                      <span dir="ltr" className="text-[11px] font-medium text-[var(--ink-muted)]">
+                        {st.dates}
+                      </span>
+                    )}
                   </div>
 
                   <div className="flex items-center gap-3">
                     <div
-                      className={`h-14 w-14 shrink-0 rounded-full border-2 overflow-hidden ${
+                      className={`h-13 w-13 shrink-0 rounded-full border-2 overflow-hidden ${
                         st.darkLogoBg ? 'bg-[#14161A] p-0' : 'bg-white p-1'
                       }`}
                       style={{ borderColor: st.color }}
@@ -497,7 +506,7 @@ export const SceneExperiences: React.FC<SceneExperiencesProps> = ({
                       {st.logoSrc ? (
                         <img
                           src={st.logoSrc}
-                          alt={st.company[lang]}
+                          alt={st.company}
                           className={`h-full w-full rounded-full ${
                             st.darkLogoBg ? 'object-cover' : 'object-contain'
                           }`}
@@ -509,12 +518,12 @@ export const SceneExperiences: React.FC<SceneExperiencesProps> = ({
                       )}
                     </div>
                     <div>
-                      <div className="text-xs font-bold uppercase tracking-wider" style={{ color: st.color }}>
-                        {st.company[lang]}
+                      <div dir="ltr" className="text-[11px] font-bold uppercase tracking-wider" style={{ color: st.color }}>
+                        {st.company}
                       </div>
                       <h3
                         dir="ltr"
-                        className={`font-display text-base sm:text-lg font-semibold text-[var(--ink-primary)] ${
+                        className={`font-display text-sm sm:text-base font-semibold text-[var(--ink-primary)] ${
                           isRtl ? 'text-right' : 'text-left'
                         }`}
                       >
@@ -523,37 +532,15 @@ export const SceneExperiences: React.FC<SceneExperiencesProps> = ({
                     </div>
                   </div>
 
-                  {st.tabs && (
-                    <div className="mt-3 inline-flex rounded-full border border-[var(--hairline)] bg-[var(--surface-cream)] p-1">
-                      {(['lead', 'sell'] as const).map((tabKey) => {
-                        const active = xfuseTab === tabKey;
-                        return (
-                          <button
-                            key={tabKey}
-                            type="button"
-                            onClick={() => setXfuseTab(tabKey)}
-                            className={`rounded-full px-3.5 py-1 text-xs font-bold transition-colors ${
-                              active
-                                ? 'bg-[#2D2140] text-[#F5EFE0] dark:bg-[#A68BC8] dark:text-[#1A1328]'
-                                : 'text-[var(--ink-secondary)]'
-                            }`}
-                          >
-                            {tabKey === 'lead' ? copy.tabLead[lang] : copy.tabSell[lang]}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-
-                  <ul className="mt-3 space-y-2">
-                    {displayedAchievements.map((ach, aIdx) => (
+                  <ul className="mt-3 space-y-1.5">
+                    {st.achievements.slice(0, 3).map((ach, aIdx) => (
                       <li
-                        key={`${st.id}-m-${xfuseTab}-${aIdx}`}
-                        className="flex items-start gap-2 rounded-xl border border-[var(--hairline)] bg-[var(--surface-cream)]/75 px-3 py-2 text-xs leading-snug text-[var(--ink-primary)]"
+                        key={`${st.id}-m-${aIdx}`}
+                        className="flex items-start gap-2 rounded-xl border border-[var(--hairline)] bg-[var(--surface-cream)]/75 px-3 py-1.5 text-xs leading-snug text-[var(--ink-primary)]"
                       >
                         <span
                           dir="ltr"
-                          className="shrink-0 rounded-md px-2 py-0.5 text-[11px] font-bold text-[#2D2140]"
+                          className="shrink-0 rounded-md px-2 py-0.5 text-[10.5px] font-bold text-[#2D2140]"
                           style={{ backgroundColor: st.softColor }}
                         >
                           {ach.badge}
@@ -563,11 +550,12 @@ export const SceneExperiences: React.FC<SceneExperiencesProps> = ({
                     ))}
                   </ul>
 
-                  <div className="mt-4 flex justify-end">
+                  <div className="mt-3.5 flex justify-end">
                     <button
                       type="button"
                       onClick={() => openDetailsPopup(st)}
-                      className="rounded-full bg-[#2D2140] px-5 py-2.5 text-xs sm:text-sm font-semibold text-[#F5EFE0] dark:bg-[#A68BC8] dark:text-[#1A1328]"
+                      dir="ltr"
+                      className="rounded-full bg-[#2D2140] px-4.5 py-2 text-xs font-semibold text-[#F5EFE0] dark:bg-[#A68BC8] dark:text-[#1A1328]"
                     >
                       {copy.openFile[lang]}
                     </button>
@@ -578,6 +566,15 @@ export const SceneExperiences: React.FC<SceneExperiencesProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Smooth color blend from Experiences (--surface-cream) into Skills (--surface-peach) */}
+      <div
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-28 z-10"
+        style={{
+          background: 'linear-gradient(180deg, transparent 0%, var(--surface-peach) 100%)',
+        }}
+        aria-hidden="true"
+      />
 
       {/* Shimmering Flying Puzzle Pieces flying cleanly from each station into the skills pocket */}
       {flyingBatches.map((batch) => (
@@ -603,11 +600,14 @@ export const SceneExperiences: React.FC<SceneExperiencesProps> = ({
               }}
               aria-hidden="true"
             />
-            <PuzzlePocketArt className="relative z-10 h-12 w-12 sm:h-14 sm:w-14 drop-shadow-md" />
+            <PuzzlePocketArt
+              className="relative z-10 h-14 w-14 sm:h-16 sm:w-16 drop-shadow-md"
+              collectedStations={collectedStationsCount}
+            />
           </div>
           <span
             dir="ltr"
-            className="mt-1 font-display italic text-xs sm:text-sm font-semibold tracking-wide text-[var(--ink-primary)] drop-shadow-xs"
+            className="mt-1 font-display italic text-xs font-semibold tracking-wide text-[var(--ink-primary)] drop-shadow-xs"
           >
             {copy.pocketLabel}
           </span>
@@ -674,7 +674,7 @@ const FlyingPuzzleSet: React.FC<{ batch: FlyingBatch }> = ({ batch }) => {
 
   return (
     <div className="pointer-events-none fixed inset-0 z-40 overflow-hidden" aria-hidden="true">
-      {PIECE_OFFSETS.map((offset, idx) => (
+      {PIECE_OFFSETS.map((_, idx) => (
         <div
           key={idx}
           ref={(el) => { pieceRefs.current[idx] = el; }}

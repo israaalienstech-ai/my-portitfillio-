@@ -136,6 +136,12 @@ export const KeyedImage: React.FC<{
         }
       }
     };
+    img.onerror = () => {
+      if (!cancelled) {
+        setResolved(src);
+        setReady(true);
+      }
+    };
     img.src = src;
     return () => {
       cancelled = true;
@@ -212,26 +218,55 @@ export const PuzzlePieceArt: React.FC<{ color: string; className?: string }> = (
 );
 
 /** Stitched cream-and-lavender pocket pouch collecting experience pieces */
-export const PuzzlePocketArt: React.FC<{ className?: string }> = ({ className = 'w-10 h-10' }) => (
-  <svg viewBox="0 0 56 56" className={className} aria-hidden="true">
-    <path
-      d="M 10 14 L 46 14 L 46 34 C 46 44, 38 49, 28 49 C 18 49, 10 44, 10 34 Z"
-      fill="#E4D8F0"
-      stroke="#A68BC8"
-      strokeWidth="2.4"
-      strokeLinejoin="round"
-    />
-    <path d="M 14 20 L 42 20" stroke="#A68BC8" strokeWidth="2" strokeDasharray="3 3" strokeLinecap="round" />
-    <path
-      d="M 18 14 L 22 6 L 34 6 L 38 14"
-      fill="#EDA89B"
-      fillOpacity="0.7"
-      stroke="#2D2140"
-      strokeOpacity="0.35"
-      strokeWidth="1.6"
-    />
-  </svg>
-);
+export const PuzzlePocketArt: React.FC<{ className?: string; collectedStations?: number }> = ({
+  className = 'w-10 h-10',
+  collectedStations = 0,
+}) => {
+  const pieceColors = ['#A68BC8', '#E7907A', '#9DB5A0', '#8FB996', '#E3B26E'];
+  const visibleCount = Math.max(0, Math.min(5, collectedStations));
+
+  return (
+    <svg viewBox="0 0 64 64" className={className} aria-hidden="true">
+      {/* Collected skill puzzle pieces peeking out from inside the pocket */}
+      {pieceColors.slice(0, visibleCount).map((color, idx) => {
+        const xOff = 12 + idx * 7;
+        const yOff = idx % 2 === 0 ? 7 : 4;
+        const rot = (idx - 2) * 8;
+        return (
+          <g key={color} transform={`translate(${xOff}, ${yOff}) rotate(${rot} 8 8)`}>
+            <rect
+              x="0"
+              y="0"
+              width="13"
+              height="13"
+              rx="3"
+              fill={color}
+              stroke="#FFF9F2"
+              strokeWidth="1.4"
+            />
+            <circle cx="6.5" cy="0" r="2.5" fill={color} stroke="#FFF9F2" strokeWidth="1" />
+          </g>
+        );
+      })}
+      <path
+        d="M 12 20 L 52 20 L 52 40 C 52 51, 43 57, 32 57 C 21 57, 12 51, 12 40 Z"
+        fill="#E4D8F0"
+        stroke="#A68BC8"
+        strokeWidth="2.6"
+        strokeLinejoin="round"
+      />
+      <path d="M 16 26 L 48 26" stroke="#A68BC8" strokeWidth="2.2" strokeDasharray="3 3" strokeLinecap="round" />
+      <path
+        d="M 21 20 L 25 12 L 39 12 L 43 20"
+        fill="#EDA89B"
+        fillOpacity="0.68"
+        stroke="#2D2140"
+        strokeOpacity="0.35"
+        strokeWidth="1.6"
+      />
+    </svg>
+  );
+};
 
 /** FERTICAL botanical emblem */
 export const FerticalLogoArt: React.FC<{ className?: string }> = ({ className = 'w-full h-full' }) => (
@@ -251,6 +286,18 @@ export const XfuseLogoArt: React.FC<{ className?: string }> = ({ className = 'w-
     <path d="M 32 32 C 44 45, 56 55, 68 68" stroke="#2D2140" strokeWidth="5.5" strokeLinecap="round" />
     <path d="M 68 32 C 56 45, 44 55, 32 68" stroke="#9DB5A0" strokeWidth="5.5" strokeLinecap="round" />
     <circle cx="50" cy="50" r="6" fill="#E3B26E" />
+  </svg>
+);
+
+/** Aliens ERP & No-Code monogram emblem */
+export const AliensLogoArt: React.FC<{ className?: string }> = ({ className = 'w-full h-full' }) => (
+  <svg viewBox="0 0 100 100" className={className} aria-hidden="true">
+    <circle cx="50" cy="50" r="44" fill="#231936" />
+    <circle cx="50" cy="50" r="32" fill="none" stroke="#C59AB8" strokeWidth="1.6" strokeDasharray="4 4" />
+    <path d="M 50 24 L 68 70 M 50 24 L 32 70 M 38 56 L 62 56" fill="none" stroke="#EEDEEB" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" />
+    <circle cx="50" cy="24" r="4" fill="#E3B26E" />
+    <circle cx="32" cy="70" r="3.5" fill="#A68BC8" />
+    <circle cx="68" cy="70" r="3.5" fill="#9DB5A0" />
   </svg>
 );
 

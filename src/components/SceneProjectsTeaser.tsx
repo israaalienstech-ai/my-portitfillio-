@@ -102,12 +102,12 @@ export const SceneProjectsTeaser: React.FC<SceneProjectsTeaserProps> = ({ lang }
         <div className="text-center max-w-xl mx-auto">
           <h2
             className="font-display font-semibold text-[var(--ink-primary)]"
-            style={{ fontSize: 'clamp(1.85rem, 3.6vw, 2.75rem)' }}
+            style={{ fontSize: 'clamp(1.4rem, 2.5vw, 2.05rem)' }}
           >
             <span>{copy.titleBefore[lang]}</span>
             <span className="italic text-[#A68BC8]">{copy.titleAccent[lang]}</span>
           </h2>
-          <p className="mt-3 text-base sm:text-lg text-[var(--ink-secondary)]">
+          <p className="mt-2.5 text-sm sm:text-[15px] text-[var(--ink-secondary)]">
             {copy.line[lang]}
           </p>
         </div>

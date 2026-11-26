@@ -23,10 +23,10 @@ interface SceneSkillsProps {
 }
 
 const FOUR_PIECES = [
-  { color: '#A68BC8', label: 'FERTICAL', rowX: -126, burstX: -460, burstY: -220, rot: -16 },
-  { color: '#E7907A', label: 'CVeeeZ', rowX: -42, burstX: -190, burstY: -310, rot: 12 },
-  { color: '#9DB5A0', label: 'X-FUSE', rowX: 42, burstX: 210, burstY: -290, rot: -10 },
-  { color: '#E3B26E', label: 'Career CV', rowX: 126, burstX: 460, burstY: -210, rot: 18 },
+  { color: '#A68BC8', label: 'FERTICAL', rowX: -126, burstX: -420, burstY: -220, rot: -16 },
+  { color: '#E7907A', label: 'CVeeeZ', rowX: -42, burstX: -150, burstY: -310, rot: 12 },
+  { color: '#9DB5A0', label: 'X-FUSE', rowX: 42, burstX: 150, burstY: -310, rot: -8 },
+  { color: '#E3B26E', label: 'Career CV', rowX: 126, burstX: 420, burstY: -210, rot: 14 },
 ];
 
 export const SceneSkills: React.FC<SceneSkillsProps> = ({ lang, onDebugUpdate }) => {
@@ -63,25 +63,46 @@ export const SceneSkills: React.FC<SceneSkillsProps> = ({ lang, onDebugUpdate })
     if (reduced) return;
 
     const ctx = gsap.context(() => {
+      const vw = window.innerWidth || 1024;
+      const vh = window.innerHeight || 768;
+      const cornerOffsetX = vw >= 640 ? 64 : 48;
+      const cornerX = isRtl ? -(vw / 2 - cornerOffsetX) : vw / 2 - cornerOffsetX;
+      const cornerY = vh / 2 - 62;
+
+      if (heroPocketRef.current) {
+        gsap.set(heroPocketRef.current, {
+          x: cornerX,
+          y: cornerY,
+          scale: 0.56,
+          opacity: 0,
+        });
+      }
+
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: outer,
           start: 'top top',
           end: 'bottom bottom',
           scrub: 1,
+          onEnter: () => {
+            if (heroPocketRef.current) gsap.set(heroPocketRef.current, { opacity: 1 });
+          },
+          onLeaveBack: () => {
+            if (heroPocketRef.current) gsap.set(heroPocketRef.current, { opacity: 0 });
+          },
           onUpdate: (self) => {
             const p = self.progress;
             let beat = 'pocket-grow';
 
-            if (p >= 0.12 && p < 0.36) {
+            if (p >= 0.14 && p < 0.38) {
               beat = 'gather-4-pieces';
-            } else if (p >= 0.36 && p < 0.45) {
+            } else if (p >= 0.38 && p < 0.46) {
               beat = 'my-skills-complete';
               if (!triggeredRef.current.complete && self.direction > 0) {
                 triggeredRef.current.complete = true;
                 soundSystem.skillComplete();
               }
-            } else if (p >= 0.45 && p < 0.55) {
+            } else if (p >= 0.46 && p < 0.55) {
               beat = 'burst-reveal-skills';
               if (!triggeredRef.current.burst && self.direction > 0) {
                 triggeredRef.current.burst = true;
@@ -98,18 +119,18 @@ export const SceneSkills: React.FC<SceneSkillsProps> = ({ lang, onDebugUpdate })
         },
       });
 
-      // Phase 1: Pocket enters & grows centered
+      // Phase 1: Pocket glides & scales smoothly from its Experiences bottom corner straight to center
       if (heroPocketRef.current) {
         tl.fromTo(
           heroPocketRef.current,
-          { scale: 0.65, y: 120, opacity: 0 },
-          { scale: 1.45, y: 18, opacity: 1, duration: 0.13, ease: 'back.out(1.4)' },
+          { x: cornerX, y: cornerY, scale: 0.56, opacity: 1 },
+          { x: 0, y: 18, scale: 1.48, opacity: 1, duration: 0.16, ease: 'power2.out' },
           0,
         );
         tl.to(
           heroPocketRef.current,
-          { scale: 0.9, y: 95, opacity: 0, duration: 0.1, ease: 'power2.in' },
-          0.18,
+          { x: 0, y: 95, scale: 0.9, opacity: 0, duration: 0.1, ease: 'power2.in' },
+          0.2,
         );
       }
 
@@ -192,7 +213,7 @@ export const SceneSkills: React.FC<SceneSkillsProps> = ({ lang, onDebugUpdate })
           grp,
           { opacity: 0, y: 26, scale: 0.95 },
           { opacity: 1, y: 0, scale: 1, duration: 0.1, ease: 'back.out(1.25)' },
-          0.7 + (idx - 2) * 0.03,
+          0.62 + (idx - 2) * 0.03,
         );
       });
 
@@ -202,7 +223,7 @@ export const SceneSkills: React.FC<SceneSkillsProps> = ({ lang, onDebugUpdate })
       orderedSkillIds.forEach((skillId, sIdx) => {
         const btn = pieceItemRefs.current[skillId];
         if (!btn) return;
-        const slot = 0.54 + (sIdx / Math.max(1, totalItems - 1)) * 0.36;
+        const slot = 0.52 + (sIdx / Math.max(1, totalItems - 1)) * 0.3;
         tl.fromTo(
           btn,
           { opacity: 0, scale: 0.55, y: 14, rotation: sIdx % 2 === 0 ? -5 : 5 },
@@ -211,26 +232,28 @@ export const SceneSkills: React.FC<SceneSkillsProps> = ({ lang, onDebugUpdate })
         );
       });
 
-      // Dynamic outer translateY on scroll so Row 2 fits cleanly on all screen heights without internal scrolling
+      // Measure full height including container top padding so NO bottom card (e.g. Tools) is ever clipped
       const stageH = stageContainerRef.current?.clientHeight ?? window.innerHeight;
       const innerH = panelsInnerRef.current?.scrollHeight ?? stageH;
-      const overflowPx = Math.max(0, innerH - stageH + 72);
-      const isCompact = window.innerWidth < 1024 || overflowPx > 16;
+      const slidePadTop = panelsSlideRef.current
+        ? parseFloat(window.getComputedStyle(panelsSlideRef.current).paddingTop) || 32
+        : 32;
+      const overflowPx = Math.max(0, slidePadTop + innerH - stageH + 44);
 
       if (panelsInnerRef.current) {
-        const startY = isCompact ? 12 : 42;
-        const endY = isCompact ? -overflowPx : 0;
+        const startY = overflowPx > 0 ? 8 : 22;
+        const endY = -overflowPx;
         tl.fromTo(
           panelsInnerRef.current,
           { y: startY },
-          { y: endY, duration: 0.25, ease: 'power2.inOut' },
-          0.69,
+          { y: endY, duration: 0.24, ease: 'power2.inOut' },
+          0.6,
         );
       }
     }, outer);
 
     return () => ctx.revert();
-  }, [onDebugUpdate]);
+  }, [lang, onDebugUpdate]);
 
   const handleActivate = (groupId: string, item: SkillEntryItem, el: HTMLElement) => {
     const gridRect = gridRef.current?.getBoundingClientRect();
@@ -269,8 +292,11 @@ export const SceneSkills: React.FC<SceneSkillsProps> = ({ lang, onDebugUpdate })
                     'radial-gradient(circle, rgba(244,201,93,0.45) 0%, rgba(166,139,200,0.28) 55%, transparent 72%)',
                 }}
               />
-              <PuzzlePocketArt className="relative h-24 w-24 sm:h-28 sm:w-28 drop-shadow-lg" />
-              <span dir="ltr" className="relative mt-2 font-display italic text-base sm:text-lg font-semibold text-[var(--ink-primary)]">
+              <PuzzlePocketArt
+                className="relative h-24 w-24 sm:h-28 sm:w-28 drop-shadow-lg"
+                collectedStations={5}
+              />
+              <span dir="ltr" className="relative mt-2 font-display italic text-sm sm:text-base font-semibold text-[var(--ink-primary)]">
                 {PORTFOLIO_COPY.experiences.pocketLabel}
               </span>
             </div>
@@ -279,7 +305,7 @@ export const SceneSkills: React.FC<SceneSkillsProps> = ({ lang, onDebugUpdate })
               ref={assemblyLabelRef}
               dir="ltr"
               className="absolute font-display italic font-bold text-[var(--ink-primary)] select-none"
-              style={{ fontSize: 'clamp(2.5rem, 6vw, 4.4rem)' }}
+              style={{ fontSize: 'clamp(1.85rem, 4.2vw, 3.1rem)' }}
             >
               {copy.assemblyLabel}
             </div>
@@ -301,19 +327,19 @@ export const SceneSkills: React.FC<SceneSkillsProps> = ({ lang, onDebugUpdate })
           {/* 4-Group Puzzle Grid (Soft, Hard, Technical, Tools) — ZERO internal scrollbar */}
           <div
             ref={panelsSlideRef}
-            className="relative z-10 w-full pt-8 sm:pt-12 pb-10"
+            className="relative z-10 w-full pt-6 sm:pt-9 pb-8"
           >
             <div ref={panelsInnerRef} className="w-full">
-              <div className="text-center max-w-2xl mx-auto mb-5">
+              <div className="text-center max-w-2xl mx-auto mb-3.5 sm:mb-4">
                 <h2
                   className="font-display font-semibold text-[var(--ink-primary)]"
-                  style={{ fontSize: 'clamp(1.65rem, 3.2vw, 2.7rem)' }}
+                  style={{ fontSize: 'clamp(1.25rem, 2.25vw, 1.9rem)' }}
                 >
                   <span>{copy.titleBefore[lang]}</span>
                   <span className="italic text-[#A68BC8]">{copy.titleAccent[lang]}</span>
                   <span>{copy.titleAfter[lang]}</span>
                 </h2>
-                <p className="mt-1 text-sm sm:text-base text-[var(--ink-secondary)]">
+                <p className="mt-1 text-xs sm:text-[13px] text-[var(--ink-secondary)]">
                   {copy.subtitle[lang]}
                 </p>
               </div>
@@ -321,7 +347,7 @@ export const SceneSkills: React.FC<SceneSkillsProps> = ({ lang, onDebugUpdate })
               <div
                 ref={gridRef}
                 onMouseLeave={() => setActiveSkill(null)}
-                className="relative max-w-[1260px] mx-auto w-full grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5"
+                className="relative max-w-[1260px] mx-auto w-full grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-4"
               >
                 {activeSkill && (
                   <div className="pointer-events-none hidden md:block absolute inset-0 z-30">
@@ -354,7 +380,7 @@ export const SceneSkills: React.FC<SceneSkillsProps> = ({ lang, onDebugUpdate })
                     <div
                       key={group.id}
                       ref={(el) => { groupRefs.current[gIdx] = el; }}
-                      className="rounded-[24px] border border-[var(--hairline)] bg-[var(--surface-card)]/96 p-4 sm:p-5 shadow-[var(--paper-shadow)] transition-opacity duration-300"
+                      className="rounded-[22px] border border-[var(--hairline)] bg-[var(--surface-card)]/96 p-3.5 sm:p-4 shadow-[var(--paper-shadow)] transition-opacity duration-300"
                       style={{ opacity: isDimmed ? 0.52 : 1 }}
                     >
                       <div className="flex items-center justify-between gap-2 pb-2.5 mb-3 border-b border-[var(--hairline)]">
@@ -362,7 +388,7 @@ export const SceneSkills: React.FC<SceneSkillsProps> = ({ lang, onDebugUpdate })
                           <PuzzlePieceArt color={group.color} className="h-7 w-7 shrink-0" />
                           <h3
                             dir="ltr"
-                            className="font-display text-lg sm:text-xl font-bold text-[var(--ink-primary)]"
+                            className="font-display text-base sm:text-lg font-bold text-[var(--ink-primary)]"
                           >
                             {group.title[lang]}
                           </h3>
@@ -388,7 +414,7 @@ export const SceneSkills: React.FC<SceneSkillsProps> = ({ lang, onDebugUpdate })
                               type="button"
                               onMouseEnter={(e) => handleActivate(group.id, skill, e.currentTarget)}
                               onClick={(e) => handleActivate(group.id, skill, e.currentTarget)}
-                              className="group inline-flex items-center gap-2 rounded-xl border px-3 py-1.5 text-xs sm:text-sm font-medium text-[var(--ink-primary)] shadow-2xs transition-transform duration-200 focus-visible:outline-2 focus-visible:outline-[#A68BC8]"
+                              className="group inline-flex items-center gap-2 rounded-xl border px-2.5 py-1.5 text-xs font-medium text-[var(--ink-primary)] shadow-2xs transition-transform duration-200 focus-visible:outline-2 focus-visible:outline-[#A68BC8]"
                               style={{
                                 borderColor: isSelected ? srcColor.hex : 'var(--hairline)',
                                 backgroundColor: isSelected ? srcColor.soft : 'var(--surface-cream)',
@@ -396,10 +422,10 @@ export const SceneSkills: React.FC<SceneSkillsProps> = ({ lang, onDebugUpdate })
                                 transform: isSelected ? 'translate3d(0, -2px, 0)' : undefined,
                               }}
                             >
-                              <PuzzlePieceArt color={srcColor.hex} className="h-4 w-4 shrink-0" />
+                              <PuzzlePieceArt color={srcColor.hex} className="h-3.5 w-3.5 shrink-0" />
                               <span>{skill.label[lang]}</span>
                               <span
-                                className="rounded-md px-1.5 py-0.5 text-[10px] sm:text-[11px] font-bold text-[#2D2140]"
+                                className="rounded-md px-1.5 py-0.5 text-[10px] font-bold text-[#2D2140]"
                                 style={{ backgroundColor: group.softColor }}
                               >
                                 {levelText}

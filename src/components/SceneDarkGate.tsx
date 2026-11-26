@@ -17,7 +17,9 @@ export const SceneDarkGate: React.FC<SceneDarkGateProps> = ({
   onGateComplete,
   onSkipIntro,
 }) => {
-  const isRtl = lang === 'ar';
+  const [lockedLang] = useState<Lang>(lang);
+  const displayLang = lockedLang;
+  const isRtl = displayLang === 'ar';
   const copy = PORTFOLIO_COPY.gate;
 
   const rootRef = useRef<HTMLDivElement>(null);
@@ -171,6 +173,7 @@ export const SceneDarkGate: React.FC<SceneDarkGateProps> = ({
 
   const handleCordPointerDown = (e: React.PointerEvent) => {
     if (unlocked || pulling) return;
+    soundSystem.unlock();
     setInteracted(true);
     draggingRef.current = true;
     dragStartYRef.current = e.clientY;
@@ -201,6 +204,7 @@ export const SceneDarkGate: React.FC<SceneDarkGateProps> = ({
   return (
     <section
       ref={rootRef}
+      dir={isRtl ? 'rtl' : 'ltr'}
       aria-label="Opening dark gate"
       className="fixed inset-0 z-50 overflow-hidden bg-[#0B0814] text-[#F5EFE0] select-none"
     >
@@ -232,7 +236,7 @@ export const SceneDarkGate: React.FC<SceneDarkGateProps> = ({
           className="origin-top flex flex-col items-center cursor-grab active:cursor-grabbing focus-visible:outline-2 focus-visible:outline-[#F4C95D] rounded-xl"
           role="button"
           tabIndex={0}
-          aria-label={copy.button[lang]}
+          aria-label={copy.line2[displayLang]}
           onPointerDown={handleCordPointerDown}
           onPointerMove={handleCordPointerMove}
           onPointerUp={handleCordPointerUp}
@@ -287,23 +291,15 @@ export const SceneDarkGate: React.FC<SceneDarkGateProps> = ({
             <GateLanternArt className="relative z-10 h-28 w-20 sm:h-32 sm:w-22 drop-shadow-[0_0_24px_rgba(244,201,93,0.45)]" />
           </div>
         </div>
-
-        {/* Tooltip pill matching reference screenshot */}
-        <p
-          className="mt-3 rounded-full border border-[#A68BC8]/35 bg-[#2D2140]/92 px-4 py-1.5 text-center text-xs sm:text-sm font-medium text-[#F5EFE0] shadow-md transition-opacity duration-500 whitespace-nowrap"
-          style={{ opacity: interacted ? 0 : 1 }}
-        >
-          {copy.tooltip[lang]}
-        </p>
       </div>
 
       {/* Centered dark gate prompt & delayed skip */}
       <div className="relative z-10 flex h-full flex-col items-center justify-center px-6 text-center pointer-events-none">
         <p className="font-display text-3xl sm:text-5xl font-medium tracking-tight text-[#F5EFE0]">
-          {copy.line1[lang]}
+          {copy.line1[displayLang]}
         </p>
         <p className="mt-3 font-body text-lg sm:text-2xl text-[#DCD0EB]/90">
-          {copy.line2[lang]}
+          {copy.line2[displayLang]}
         </p>
 
         <button
@@ -315,7 +311,7 @@ export const SceneDarkGate: React.FC<SceneDarkGateProps> = ({
           className="pointer-events-auto mt-8 text-sm text-[#A997C4]/85 underline underline-offset-4 hover:text-[#F5EFE0] transition-opacity duration-500"
           style={{ opacity: showSkip ? 1 : 0 }}
         >
-          {copy.skip[lang]}
+          {copy.skip[displayLang]}
         </button>
       </div>
 

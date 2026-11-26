@@ -30,10 +30,10 @@
   --paper-shadow: 0 18px 42px -18px rgba(45, 33, 64, 0.15), 0 4px 12px -4px rgba(45, 33, 64, 0.08);
   --paper-shadow-lg: 0 28px 64px -22px rgba(45, 33, 64, 0.24), 0 8px 20px -6px rgba(45, 33, 64, 0.10);
 
-  --font-display-en: "Playfair Display", Georgia, serif;
-  --font-body-en: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
-  --font-display-ar: "Noto Naskh Arabic", Georgia, serif;
-  --font-body-ar: "Readex Pro", system-ui, -apple-system, sans-serif;
+  --font-display-en: "Agrave Pro", Georgia, serif;
+  --font-body-en: "Agrave Pro", system-ui, -apple-system, sans-serif;
+  --font-display-ar: "Lemonada", "Noto Naskh Arabic", Georgia, serif;
+  --font-body-ar: "El Messiri", system-ui, -apple-system, sans-serif;
 }
 
 .dark {
@@ -69,6 +69,10 @@ body {
   font-family: var(--font-body-ar);
 }
 
+[dir="ltr"] {
+  font-family: var(--font-body-en);
+}
+
 .font-display {
   font-family: var(--font-display-en);
   text-wrap: balance;
@@ -79,12 +83,22 @@ body {
   line-height: 1.32;
 }
 
+[dir="ltr"].font-display,
+[dir="ltr"] .font-display {
+  font-family: var(--font-display-en);
+}
+
 .font-body {
   font-family: var(--font-body-en);
 }
 
 [dir="rtl"] .font-body {
   font-family: var(--font-body-ar);
+}
+
+[dir="ltr"].font-body,
+[dir="ltr"] .font-body {
+  font-family: var(--font-body-en);
 }
 
 /* Fine organic paper grain overlay */
@@ -175,6 +189,27 @@ body {
   display: inline-block;
   transform-origin: 70% 75%;
   animation: wave-hand-once 1.15s ease-in-out 1 forwards;
+}
+
+@keyframes confetti-burst {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) scale(0.3) rotate(0deg);
+  }
+  18% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 0.95;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--cx, 0px), var(--cy, -24px), 0) scale(1) rotate(var(--cr, 90deg));
+  }
+}
+
+.hero-confetti-bit {
+  animation: confetti-burst 1.55s cubic-bezier(0.22, 0.85, 0.32, 1) forwards;
 }
 
 @media (prefers-reduced-motion: reduce) {

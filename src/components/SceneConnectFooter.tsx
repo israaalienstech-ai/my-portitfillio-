@@ -1,15 +1,29 @@
 import React, { useEffect, useState } from 'react';
-import { ArrowUp, Check, Copy, Mail, MapPin, Phone, Sparkles, X } from 'lucide-react';
-import { Lang, PORTFOLIO_COPY } from '../data/rebuildContent';
+import { ArrowUp, Check, Copy, Download, Mail, MapPin, MessageCircle, Sparkles, X } from 'lucide-react';
+import {
+  COURSE_BOOKS,
+  EXPERIENCE_STATIONS,
+  LANGUAGES_LIST,
+  Lang,
+  PORTFOLIO_COPY,
+  SKILL_GROUPS,
+  SKILL_LEVEL_LABELS,
+} from '../data/rebuildContent';
 import { KeyedImage, UPLOADED_ASSETS } from './StorybookVisuals';
 import { soundSystem } from '../utils/soundSystem';
 
 interface SceneConnectFooterProps {
   lang: Lang;
   nightMode: boolean;
+  onNavigate?: (sectionId: string) => void;
+  onBackToTop?: () => void;
 }
 
-export const SceneConnectFooter: React.FC<SceneConnectFooterProps> = ({ lang }) => {
+export const SceneConnectFooter: React.FC<SceneConnectFooterProps> = ({
+  lang,
+  onNavigate,
+  onBackToTop,
+}) => {
   const isRtl = lang === 'ar';
   const copy = PORTFOLIO_COPY.connect;
 
@@ -43,7 +57,92 @@ export const SceneConnectFooter: React.FC<SceneConnectFooterProps> = ({ lang }) 
     setSailOpen((prev) => !prev);
   };
 
+  const handleDownloadCv = () => {
+    soundSystem.copyPing();
+    const esc = (s: string) =>
+      s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+    const expHtml = EXPERIENCE_STATIONS.map(
+      (st) => `
+      <section style="margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid #e6dce8;">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;">
+          <h3 style="margin:0;font-size:16px;color:#2D2140;">${esc(st.role)} — <span style="color:#7A4FB0;">${esc(st.company)}</span></h3>
+          ${st.dates ? `<span style="font-size:12px;color:#6d5b88;">${esc(st.dates)}</span>` : ''}
+        </div>
+        <p style="margin:6px 0 8px;color:#4D3D66;font-size:13.5px;">${esc(st.roleOverview.en)}</p>
+        <ul style="margin:0;padding-left:18px;font-size:13px;line-height:1.55;color:#2D2140;">
+          ${st.achievements.map((a) => `<li><strong>${esc(a.badge)}:</strong> ${esc(a.caption.en)}</li>`).join('')}
+        </ul>
+      </section>`,
+    ).join('');
+
+    const skillsHtml = SKILL_GROUPS.map(
+      (g) => `
+      <div style="margin-bottom:8px;font-size:13px;">
+        <strong style="color:#2D2140;">${esc(g.title.en)}:</strong>
+        <span style="color:#4D3D66;">${g.skills.map((s) => `${esc(s.label.en)} (${esc(SKILL_LEVEL_LABELS[s.level].en)})`).join(' · ')}</span>
+      </div>`,
+    ).join('');
+
+    const coursesHtml = COURSE_BOOKS.map(
+      (c) => `${esc(c.title)}${c.provider ? ` (${esc(c.provider.en.trim())})` : ''}`,
+    ).join(' · ');
+
+    const langsHtml = LANGUAGES_LIST.map(
+      (l) => `${esc(l.name.en)} (${esc(l.levelLabel.en)})`,
+    ).join(' · ');
+
+    const cvDocument = `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Israa Ellban — CV</title>
+  <style>
+    body { font-family: Georgia, 'Times New Roman', serif; max-width: 820px; margin: 36px auto; padding: 0 24px; color: #2D2140; background: #FFFDF9; line-height: 1.5; }
+    header { border-bottom: 2px solid #2D2140; padding-bottom: 14px; margin-bottom: 22px; }
+    h1 { margin: 0 0 4px; font-size: 28px; letter-spacing: 0.01em; }
+    h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 0.14em; color: #7A4FB0; margin: 22px 0 10px; border-bottom: 1px solid #e6dce8; padding-bottom: 4px; }
+    a { color: #2D2140; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Israa Ellban</h1>
+    <div style="font-size:14px;color:#4D3D66;">Product Manager · Account Manager · Business Development &amp; Operations</div>
+    <div style="margin-top:8px;font-size:13px;color:#4D3D66;">
+      Egypt (Open for Onsite or Remote) ·
+      <a href="mailto:${esc(copy.email)}">${esc(copy.email)}</a> ·
+      <a href="${esc(copy.whatsappUrl)}">${esc(copy.phone)} (WhatsApp)</a>
+    </div>
+  </header>
+  <h2>Profile</h2>
+  <p style="font-size:13.5px;color:#2D2140;">${esc(copy.body.en)}</p>
+  <h2>Experience</h2>
+  ${expHtml}
+  <h2>Skills</h2>
+  ${skillsHtml}
+  <h2>Courses &amp; Languages</h2>
+  <p style="font-size:13px;color:#4D3D66;"><strong>Courses:</strong> ${coursesHtml}</p>
+  <p style="font-size:13px;color:#4D3D66;"><strong>Languages:</strong> ${langsHtml}</p>
+</body>
+</html>`;
+
+    const blob = new Blob([cvDocument], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'Israa_Ellban_CV.html';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+
   const scrollToSection = (id: string) => {
+    if (onNavigate) {
+      onNavigate(id);
+      return;
+    }
     const el = document.getElementById(id);
     if (!el) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -92,19 +191,26 @@ export const SceneConnectFooter: React.FC<SceneConnectFooterProps> = ({ lang }) 
                   {copy.eyebrow[lang]}
                 </p>
                 <h2
-                  className="mt-1 font-display font-bold leading-[1.08] text-[#F5EFE0]"
-                  style={{ fontSize: 'clamp(1.75rem, 3.2vw, 2.75rem)' }}
+                  className="mt-1 font-display font-bold leading-[1.16] text-[#F5EFE0]"
+                  style={{ fontSize: 'clamp(1.65rem, 3.05vw, 2.55rem)' }}
                 >
-                  <span>{copy.titleBefore[lang]}</span>
-                  <span className="italic text-[#E4D8F0]">{copy.titleAccent[lang]}</span>
-                  <span>{copy.titleAfter[lang]}</span>
+                  <span>{copy.line1Before[lang]}</span>
+                  <span className="italic text-[#E4D8F0]">{copy.line1Highlight[lang]}</span>
+                  <span> {copy.line1Emoji} </span>
+                  <span
+                    dir="ltr"
+                    className="inline-block rounded-lg bg-[#E3B26E]/22 px-2 py-0.5 text-[#FFE6A3] border-b-2 border-[#E3B26E]/80"
+                    style={{ unicodeBidi: 'isolate', fontFamily: 'var(--font-display-en)' }}
+                  >
+                    {copy.line2}
+                  </span>
                 </h2>
 
                 <p className="mt-2 max-w-xl text-sm sm:text-[15px] leading-relaxed text-[#EBE2F0]">
                   {copy.body[lang]}
                 </p>
 
-                {/* Primary Email Box with integrated Copy icon + Phone & Say Hello */}
+                {/* Primary Email Box with integrated Copy + Direct WhatsApp Link & Copy */}
                 <div className="mt-4 flex flex-wrap items-center gap-2.5">
                   <div
                     dir="ltr"
@@ -137,10 +243,13 @@ export const SceneConnectFooter: React.FC<SceneConnectFooterProps> = ({ lang }) 
                     className="inline-flex items-center gap-1.5 rounded-full border border-[#F5EFE0]/28 bg-[#1C122A]/65 backdrop-blur-xs pl-4 pr-2 py-1.5 text-xs sm:text-sm font-medium text-[#F5EFE0]"
                   >
                     <a
-                      href={`tel:${copy.phone}`}
-                      className="inline-flex items-center gap-2 py-0.5 hover:text-[#E4D8F0] transition-colors"
+                      href={copy.whatsappUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 py-0.5 hover:text-[#BCE0C2] transition-colors"
+                      aria-label={`${copy.whatsappLabel[lang]}: ${copy.phone}`}
                     >
-                      <Phone className="h-3.5 w-3.5 text-[#EDA89B]" />
+                      <MessageCircle className="h-3.5 w-3.5 text-[#9DB5A0]" />
                       <span>{copy.phone}</span>
                     </a>
                     <button
@@ -160,6 +269,15 @@ export const SceneConnectFooter: React.FC<SceneConnectFooterProps> = ({ lang }) 
                 </div>
 
                 <div className="mt-2.5 flex flex-wrap items-center gap-2.5">
+                  <button
+                    type="button"
+                    onClick={handleDownloadCv}
+                    className="inline-flex items-center gap-2 rounded-full border border-[#9DB5A0]/50 bg-[#9DB5A0]/20 backdrop-blur-xs px-4 py-2 text-xs sm:text-sm font-semibold text-[#F5EFE0] hover:bg-[#9DB5A0]/35 hover:border-[#9DB5A0] transition-colors"
+                  >
+                    <Download className="h-3.5 w-3.5 text-[#BCE0C2]" />
+                    <span>{copy.downloadCv[lang]}</span>
+                  </button>
+
                   <button
                     type="button"
                     onClick={handleOpenSail}
@@ -217,7 +335,7 @@ export const SceneConnectFooter: React.FC<SceneConnectFooterProps> = ({ lang }) 
             {/* Bottom Footer Bar inside the dark base of the landscape */}
             <div className="mt-5 border-t border-[#F5EFE0]/15 pt-3.5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#DFD3EE]/85">
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-                <span className="font-display font-bold text-[#F5EFE0] text-sm">
+                <span dir="ltr" className="font-display font-bold text-[#F5EFE0] text-sm">
                   {PORTFOLIO_COPY.brand[lang]}
                 </span>
                 <span aria-hidden="true">·</span>
@@ -239,7 +357,13 @@ export const SceneConnectFooter: React.FC<SceneConnectFooterProps> = ({ lang }) 
 
               <button
                 type="button"
-                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                onClick={() => {
+                  if (onBackToTop) {
+                    onBackToTop();
+                  } else {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }
+                }}
                 className="inline-flex items-center gap-1.5 font-semibold text-[#E3B26E] hover:text-[#F5EFE0] transition-colors shrink-0"
               >
                 <ArrowUp className="h-3.5 w-3.5" />
@@ -310,11 +434,13 @@ export const SceneConnectFooter: React.FC<SceneConnectFooterProps> = ({ lang }) 
 
               <div className="flex items-center justify-between gap-2 rounded-2xl border border-[var(--hairline)] bg-[var(--surface-cream)] px-4 py-3">
                 <a
-                  href={`tel:${copy.phone}`}
-                  className="flex items-center gap-2.5 text-sm sm:text-base font-medium text-[var(--ink-primary)] hover:text-[#A68BC8] transition-colors"
+                  href={copy.whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2.5 text-sm sm:text-base font-medium text-[var(--ink-primary)] hover:text-[#6B8E63] transition-colors"
                   dir="ltr"
                 >
-                  <Phone className="h-4 w-4 shrink-0 text-[#E7907A]" />
+                  <MessageCircle className="h-4 w-4 shrink-0 text-[#9DB5A0]" />
                   <span>{copy.phone}</span>
                 </a>
                 <button
