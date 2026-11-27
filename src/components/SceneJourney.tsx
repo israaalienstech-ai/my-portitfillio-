@@ -256,10 +256,10 @@ export const SceneJourney: React.FC<SceneJourneyProps> = ({
           className="sticky-stage paper-grain-surface"
           style={{ backgroundColor: 'var(--surface-peach)' }}
         >
-          <div className="relative mx-auto flex h-full w-full max-w-[1400px] flex-col justify-center px-5 sm:px-12 lg:px-20 py-4 md:py-10">
-            <div className="flex flex-col-reverse md:grid md:grid-cols-12 md:items-center gap-3 md:gap-10">
+          <div className="relative mx-auto flex h-full w-full max-w-[1400px] flex-col justify-center px-5 sm:px-8 lg:px-20 pt-14 pb-5 sm:pt-16 sm:pb-6 md:py-10">
+            <div className="flex flex-col-reverse md:grid md:grid-cols-12 md:items-center gap-3 md:gap-7 lg:gap-10">
               {/* Inline-start scroll steps */}
-              <div className="md:col-span-6 flex flex-col justify-center">
+              <div className="md:col-span-7 lg:col-span-6 flex flex-col justify-center">
                 {(() => {
                   const leadStr = copy.lead[lang].trim();
                   const lastSpace = leadStr.lastIndexOf(' ');
@@ -269,7 +269,7 @@ export const SceneJourney: React.FC<SceneJourneyProps> = ({
                     <h2
                       ref={leadRef}
                       className="font-display font-semibold leading-[1.2] text-[var(--ink-primary)] max-w-2xl"
-                      style={{ fontSize: 'clamp(1.25rem, 2.85vw, 2.48rem)' }}
+                      style={{ fontSize: 'clamp(1.2rem, 2.35vw, 2.45rem)' }}
                     >
                       <span>{leadBeforeLast}</span>
                       <span className="inline-flex items-center gap-2 whitespace-nowrap align-baseline">
@@ -318,11 +318,11 @@ export const SceneJourney: React.FC<SceneJourneyProps> = ({
                   );
                 })()}
 
-                <ol className="mt-3 md:mt-7 space-y-2 sm:space-y-3 md:space-y-5 max-w-xl">
+                <ol className="mt-3 md:mt-4 lg:mt-6 space-y-2 sm:space-y-2.5 md:space-y-3 lg:space-y-4.5 max-w-xl">
                   {/* Line 1: Light purple marker */}
                   <li
                     ref={(el) => { lineRefs.current[0] = el; }}
-                    className="flex items-baseline gap-2.5 text-sm sm:text-base md:text-xl leading-snug md:leading-relaxed text-[var(--ink-secondary)]"
+                    className="flex items-baseline gap-2.5 text-sm sm:text-[15px] md:text-base lg:text-xl leading-snug lg:leading-relaxed text-[var(--ink-secondary)]"
                   >
                     <span className="font-display font-bold text-[#7a4fb0] shrink-0">
                       {copy.lines[0].num[lang]}
@@ -347,7 +347,7 @@ export const SceneJourney: React.FC<SceneJourneyProps> = ({
                   {/* Line 2: Hand-drawn sage underline #8fb996 */}
                   <li
                     ref={(el) => { lineRefs.current[1] = el; }}
-                    className="flex items-baseline gap-2.5 text-sm sm:text-base md:text-xl leading-snug md:leading-relaxed text-[var(--ink-secondary)]"
+                    className="flex items-baseline gap-2.5 text-sm sm:text-[15px] md:text-base lg:text-xl leading-snug lg:leading-relaxed text-[var(--ink-secondary)]"
                   >
                     <span className="font-display font-bold text-[#5e8e67] shrink-0">
                       {copy.lines[1].num[lang]}
@@ -380,28 +380,28 @@ export const SceneJourney: React.FC<SceneJourneyProps> = ({
                   {/* Line 3: Hand-drawn pink circle #e9a8a0 */}
                   <li
                     ref={(el) => { lineRefs.current[2] = el; }}
-                    className="flex items-baseline gap-2.5 text-sm sm:text-base md:text-xl leading-snug md:leading-relaxed text-[var(--ink-secondary)]"
+                    className="flex items-baseline gap-2.5 text-sm sm:text-[15px] md:text-base lg:text-xl leading-snug lg:leading-relaxed text-[var(--ink-secondary)]"
                   >
                     <span className="font-display font-bold text-[#c77166] shrink-0">
                       {copy.lines[2].num[lang]}
                     </span>
                     <p>
-                      <span className="relative inline-block px-1.5 font-semibold text-[var(--ink-primary)]">
+                      <span className="relative inline-block px-2.5 font-semibold text-[var(--ink-primary)]">
                         {copy.lines[2].highlight[lang]}
                         <svg
-                          viewBox="0 0 180 54"
+                          viewBox="0 0 184 56"
                           preserveAspectRatio="none"
-                          className="pointer-events-none absolute -inset-x-2 -inset-y-1.5 h-[132%] w-[112%] overflow-visible"
+                          className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[158%] w-[120%] overflow-visible"
                           aria-hidden="true"
                         >
                           <path
-                            d="M 14 28 C 12 8, 166 5, 170 26 C 174 47, 14 49, 10 29 C 8 18, 56 9, 112 10"
+                            d="M 10 28 C 8 5, 174 4, 176 28 C 178 52, 12 53, 8 29 C 6 16, 58 7, 122 9"
                             fill="none"
                             stroke="#e9a8a0"
                             strokeWidth="2.8"
                             strokeLinecap="round"
-                            strokeDasharray="460"
-                            strokeDashoffset={stepState.h3 ? 0 : 460}
+                            strokeDasharray="520"
+                            strokeDashoffset={stepState.h3 ? 0 : 520}
                             style={{ transition: 'stroke-dashoffset 750ms cubic-bezier(0.22,0.8,0.3,1)' }}
                           />
                         </svg>
@@ -414,7 +414,7 @@ export const SceneJourney: React.FC<SceneJourneyProps> = ({
                 {/* Closing line + original rose 3-stroke scratches */}
                 <div
                   ref={closingRef}
-                  className="mt-3.5 md:mt-8 flex flex-wrap items-center gap-x-2 text-base sm:text-xl md:text-[28px] font-display text-[var(--ink-primary)]"
+                  className="mt-3.5 md:mt-5 lg:mt-8 flex flex-wrap items-center gap-x-2 text-base sm:text-lg md:text-xl lg:text-[28px] font-display text-[var(--ink-primary)]"
                 >
                   <span>{copy.closingBefore[lang]}</span>
                   <span className="relative inline-block px-1.5 font-semibold italic text-[#D97F70] dark:text-[#EDA89B]">
@@ -454,20 +454,20 @@ export const SceneJourney: React.FC<SceneJourneyProps> = ({
                 </div>
 
                 {/* Redesigned botanical storybook CTA: This is where it started -> FERTICAL */}
-                <div ref={ctaRef} className="mt-3.5 md:mt-8 flex flex-wrap items-center gap-2.5 md:gap-3.5">
-                  <span className="font-display text-sm sm:text-lg md:text-xl font-medium text-[var(--ink-secondary)]">
+                <div ref={ctaRef} className="mt-3.5 md:mt-5 lg:mt-8 flex flex-wrap items-center gap-2.5 lg:gap-3.5">
+                  <span className="font-display text-sm sm:text-base md:text-lg lg:text-xl font-medium text-[var(--ink-secondary)]">
                     {copy.ctaPrefix[lang]}
                   </span>
                   <button
                     type="button"
                     onClick={onJumpToFertical}
-                    className="group relative inline-flex items-center gap-2.5 md:gap-3.5 rounded-2xl border-2 border-[#7A4FB0]/35 bg-[var(--surface-card)] px-3.5 py-2 md:px-5 md:py-3 shadow-[var(--paper-shadow)] hover:border-[#6B8E63] hover:-translate-y-0.5 transition-all duration-300 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#A68BC8]"
+                    className="group relative inline-flex items-center gap-2.5 lg:gap-3.5 rounded-2xl border-2 border-[#7A4FB0]/35 bg-[var(--surface-card)] px-3.5 py-2 md:px-4 md:py-2.5 lg:px-5 lg:py-3 shadow-[var(--paper-shadow)] hover:border-[#6B8E63] hover:-translate-y-0.5 transition-all duration-300 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#A68BC8]"
                   >
                     <span
-                      className="flex h-7 w-7 md:h-9 md:w-9 items-center justify-center rounded-xl bg-[#DCE7DD] text-[#355E3B] border border-[#9DB5A0]/50 transition-transform duration-300 group-hover:rotate-6"
+                      className="flex h-7 w-7 lg:h-9 lg:w-9 items-center justify-center rounded-xl bg-[#DCE7DD] text-[#355E3B] border border-[#9DB5A0]/50 transition-transform duration-300 group-hover:rotate-6"
                       aria-hidden="true"
                     >
-                      <svg viewBox="0 0 28 28" className="h-4 w-4 md:h-5 md:w-5" fill="none">
+                      <svg viewBox="0 0 28 28" className="h-4 w-4 lg:h-5 lg:w-5" fill="none">
                         <path
                           d="M6 21 C7 11, 14 6, 22 6 C22 14, 17 21, 7 21 Z"
                           fill="#9DB5A0"
@@ -485,13 +485,13 @@ export const SceneJourney: React.FC<SceneJourneyProps> = ({
                     </span>
                     <span
                       dir="ltr"
-                      className="font-display text-base sm:text-xl md:text-2xl font-extrabold tracking-[0.14em] uppercase bg-gradient-to-r from-[#2F5233] via-[#6B8E63] to-[#7A4FB0] dark:from-[#BCE0C2] dark:via-[#9DB5A0] dark:to-[#D8BEFF] bg-clip-text text-transparent"
+                      className="font-display text-base sm:text-lg md:text-xl lg:text-2xl font-extrabold tracking-[0.14em] uppercase bg-gradient-to-r from-[#2F5233] via-[#6B8E63] to-[#7A4FB0] dark:from-[#BCE0C2] dark:via-[#9DB5A0] dark:to-[#D8BEFF] bg-clip-text text-transparent"
                     >
                       {copy.ctaCompany}
                     </span>
                     <span
                       aria-hidden="true"
-                      className="inline-flex h-7 w-7 md:h-8 md:w-8 items-center justify-center rounded-xl bg-[#2D2140] text-[#F5EFE0] dark:bg-[#A68BC8] dark:text-[#1A1328] text-sm md:text-base font-bold transition-transform duration-300 group-hover:translate-x-0.5"
+                      className="inline-flex h-7 w-7 lg:h-8 lg:w-8 items-center justify-center rounded-xl bg-[#2D2140] text-[#F5EFE0] dark:bg-[#A68BC8] dark:text-[#1A1328] text-sm lg:text-base font-bold transition-transform duration-300 group-hover:translate-x-0.5"
                     >
                       {isRtl ? '←' : '→'}
                     </span>
@@ -499,9 +499,9 @@ export const SceneJourney: React.FC<SceneJourneyProps> = ({
                 </div>
               </div>
 
-              {/* Inline-end: 50% larger stacked arched frames */}
-              <div className="md:col-span-6 flex items-center justify-center mb-1 md:mb-0">
-                <div className="relative h-[168px] w-[146px] sm:h-[270px] sm:w-[230px] md:h-[520px] md:w-[440px] lg:h-[570px] lg:w-[485px]">
+              {/* Inline-end: responsive stacked arched frames */}
+              <div className="md:col-span-5 lg:col-span-6 flex items-center justify-center mb-1 md:mb-0">
+                <div className="relative h-[168px] w-[146px] sm:h-[205px] sm:w-[175px] md:h-[360px] md:w-[305px] lg:h-[490px] lg:w-[415px] xl:h-[560px] xl:w-[475px]">
                   {copy.lines.map((line, idx) => (
                     <div
                       key={line.id}

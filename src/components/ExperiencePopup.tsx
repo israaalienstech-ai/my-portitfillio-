@@ -54,22 +54,6 @@ export const ExperiencePopup: React.FC<ExperiencePopupProps> = ({
   }, [station, onClose]);
 
   useEffect(() => {
-    if (!station) return;
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const isCoarse = window.matchMedia('(pointer: coarse)').matches;
-    if (reduced || isCoarse) return;
-
-    const handleMove = (e: PointerEvent) => {
-      if (!noteRef.current) return;
-      const nx = (e.clientX / Math.max(1, window.innerWidth) - 0.5) * 2;
-      const ny = (e.clientY / Math.max(1, window.innerHeight) - 0.5) * 2;
-      noteRef.current.style.transform = `translate3d(${(nx * 12).toFixed(1)}px, ${(ny * 10).toFixed(1)}px, 0) rotate(${isRtl ? '-0.6deg' : '0.6deg'})`;
-    };
-    window.addEventListener('pointermove', handleMove, { passive: true });
-    return () => window.removeEventListener('pointermove', handleMove);
-  }, [station, isRtl]);
-
-  useEffect(() => {
     if (station?.id !== 'cveeez') return;
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (reduced) {
@@ -175,13 +159,11 @@ export const ExperiencePopup: React.FC<ExperiencePopupProps> = ({
           if (touchDragY > 90) onClose();
           touchStartYRef.current = null;
         }}
-        className={`paper-grain-surface relative z-10 w-full max-w-3xl max-h-[88svh] overflow-y-auto overscroll-contain rounded-t-3xl md:rounded-[28px] border border-[var(--hairline)] bg-[var(--surface-card)] p-5 sm:p-6.5 text-[var(--ink-primary)] shadow-[var(--paper-shadow-lg)] transition-transform duration-300 ease-[cubic-bezier(0.22,0.8,0.3,1)] ${
+        className={`paper-grain-surface relative z-10 w-full max-w-3xl max-h-[88svh] overflow-y-auto overscroll-contain rounded-t-3xl md:rounded-[28px] border border-[var(--hairline)] bg-[var(--surface-card)] p-5 sm:p-7 text-[var(--ink-primary)] shadow-[var(--paper-shadow-lg)] transition-transform duration-300 ease-[cubic-bezier(0.22,0.8,0.3,1)] ${
           isRtl ? 'text-right' : 'text-left'
         }`}
         style={{
-          transform: touchDragY > 0
-            ? `translate3d(0, ${touchDragY}px, 0)`
-            : `rotate(${isRtl ? '-0.6deg' : '0.6deg'})`,
+          transform: touchDragY > 0 ? `translate3d(0, ${touchDragY}px, 0)` : undefined,
         }}
       >
         <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-[var(--ink-muted)]/30 md:hidden" />

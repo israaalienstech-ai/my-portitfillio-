@@ -184,29 +184,31 @@ export const SceneConnectFooter: React.FC<SceneConnectFooterProps> = ({
         {/* ALL Connect text, buttons, glass card & footer bar strictly inside the landscape hills frame */}
         <div className="relative z-10 w-full bg-[#241736] sm:bg-transparent -mt-1 sm:mt-0 sm:pt-[220px] md:pt-[260px] lg:pt-[290px] pb-6 sm:pb-8">
           <div className="mx-auto w-full max-w-[1380px] px-6 sm:px-10 lg:px-16">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-8 items-end">
-              {/* Inline-start: Headline, Updated Role + Availability Body, Action Pills */}
-              <div className="lg:col-span-7 text-[#F5EFE0]">
-                <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#E3B26E]">
-                  {copy.eyebrow[lang]}
-                </p>
-                <h2
-                  className="mt-1 font-display font-bold leading-[1.16] text-[#F5EFE0]"
-                  style={{ fontSize: 'clamp(1.65rem, 3.05vw, 2.55rem)' }}
+            <div className="mb-4 text-[#F5EFE0]">
+              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#E3B26E]">
+                {copy.eyebrow[lang]}
+              </p>
+              <h2
+                className="mt-1 font-display font-bold leading-[1.18] text-[#F5EFE0] lg:whitespace-nowrap"
+                style={{ fontSize: 'clamp(1.35rem, 2.35vw, 2.3rem)' }}
+              >
+                <span>{copy.line1Before[lang]}</span>
+                <span className="italic text-[#E4D8F0]">{copy.line1Highlight[lang]}</span>
+                <span> {copy.line1Emoji} </span>
+                <span
+                  dir="ltr"
+                  className="inline-block rounded-lg bg-[#E3B26E]/22 px-2 py-0.5 text-[#FFE6A3] border-b-2 border-[#E3B26E]/80"
+                  style={{ unicodeBidi: 'isolate', fontFamily: 'var(--font-display-en)' }}
                 >
-                  <span>{copy.line1Before[lang]}</span>
-                  <span className="italic text-[#E4D8F0]">{copy.line1Highlight[lang]}</span>
-                  <span> {copy.line1Emoji} </span>
-                  <span
-                    dir="ltr"
-                    className="inline-block rounded-lg bg-[#E3B26E]/22 px-2 py-0.5 text-[#FFE6A3] border-b-2 border-[#E3B26E]/80"
-                    style={{ unicodeBidi: 'isolate', fontFamily: 'var(--font-display-en)' }}
-                  >
-                    {copy.line2}
-                  </span>
-                </h2>
+                  {copy.line2}
+                </span>
+              </h2>
+            </div>
 
-                <p className="mt-2 max-w-xl text-sm sm:text-[15px] leading-relaxed text-[#EBE2F0]">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-8 items-end">
+              {/* Inline-start: Updated Role + Availability Body, Action Pills */}
+              <div className="lg:col-span-7 text-[#F5EFE0]">
+                <p className="max-w-xl text-sm sm:text-[15px] leading-relaxed text-[#EBE2F0]">
                   {copy.body[lang]}
                 </p>
 
@@ -218,7 +220,9 @@ export const SceneConnectFooter: React.FC<SceneConnectFooterProps> = ({
                   >
                     <a
                       href={`mailto:${copy.email}`}
-                      className="inline-flex items-center gap-2 py-1 hover:opacity-80 transition-opacity"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 py-1 underline-offset-4 hover:underline hover:opacity-85 transition-opacity cursor-pointer"
                     >
                       <Mail className="h-4 w-4 text-[#7B659D]" />
                       <span>{copy.email}</span>
@@ -298,8 +302,10 @@ export const SceneConnectFooter: React.FC<SceneConnectFooterProps> = ({
                     </div>
                     <a
                       href={`mailto:${copy.email}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       dir="ltr"
-                      className="mt-0.5 inline-block text-sm font-semibold text-[#F5EFE0] hover:text-[#E4D8F0] transition-colors"
+                      className="mt-0.5 inline-block text-sm font-semibold text-[#F5EFE0] underline-offset-4 hover:underline hover:text-[#E4D8F0] transition-colors cursor-pointer"
                     >
                       {copy.email}
                     </a>
@@ -407,7 +413,9 @@ export const SceneConnectFooter: React.FC<SceneConnectFooterProps> = ({
               <div className="flex items-center justify-between gap-2 rounded-2xl border border-[var(--hairline)] bg-[var(--surface-cream)] px-4 py-3">
                 <a
                   href={`mailto:${copy.email}`}
-                  className="flex items-center gap-2.5 text-sm sm:text-base font-medium text-[var(--ink-primary)] hover:text-[#A68BC8] transition-colors truncate"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2.5 text-sm sm:text-base font-medium text-[var(--ink-primary)] underline-offset-4 hover:underline hover:text-[#A68BC8] transition-colors truncate cursor-pointer"
                   dir="ltr"
                 >
                   <Mail className="h-4 w-4 shrink-0 text-[#A68BC8]" />

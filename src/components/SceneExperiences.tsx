@@ -340,17 +340,17 @@ export const SceneExperiences: React.FC<SceneExperiencesProps> = ({
                   {/* Station Medallion + Card (click-only popup via Open the file button) */}
                   <div
                     ref={(el) => { stationRefs.current[idx] = el; }}
-                    className={`hidden md:flex absolute items-center gap-5 ${
+                    className={`hidden md:flex absolute items-center gap-5 lg:gap-6 ${
                       alignRightOnDesktop
-                        ? 'right-6 lg:right-12 flex-row-reverse'
-                        : 'left-6 lg:left-12 flex-row'
+                        ? 'right-5 lg:right-10 flex-row-reverse'
+                        : 'left-5 lg:left-10 flex-row'
                     }`}
-                    style={{ top: `${worldY - 145}px` }}
+                    style={{ top: `${worldY - 165}px` }}
                   >
                     {/* Medallion + optional dashed date pill */}
                     <div className="flex flex-col items-center shrink-0">
                       <div
-                        className={`soft-float-idle relative flex h-26 w-26 lg:h-30 lg:w-30 items-center justify-center rounded-full border-[3px] shadow-[var(--paper-shadow)] overflow-hidden ${
+                        className={`soft-float-idle relative flex h-24 w-24 lg:h-30 lg:w-30 items-center justify-center rounded-full border-[3px] shadow-[var(--paper-shadow)] overflow-hidden ${
                           st.darkLogoBg ? 'bg-[#14161A] p-0' : 'bg-white p-2'
                         }`}
                         style={{ borderColor: st.color }}
@@ -373,7 +373,7 @@ export const SceneExperiences: React.FC<SceneExperiencesProps> = ({
                       {st.dates && (
                         <span
                           dir="ltr"
-                          className="mt-2.5 rounded-full border border-dashed px-3 py-0.5 text-[11px] font-medium text-[var(--ink-secondary)] bg-[var(--surface-card)]/95 whitespace-nowrap"
+                          className="mt-2.5 rounded-full border border-dashed px-3.5 py-1 text-xs lg:text-[13px] font-medium text-[var(--ink-secondary)] bg-[var(--surface-card)]/95 whitespace-nowrap"
                           style={{ borderColor: st.color }}
                         >
                           {st.dates}
@@ -384,7 +384,7 @@ export const SceneExperiences: React.FC<SceneExperiencesProps> = ({
                     {/* Station Card — stays hidden until plane reaches station circle */}
                     <div
                       dir={isRtl ? 'rtl' : 'ltr'}
-                      className={`w-[395px] lg:w-[460px] rounded-[24px] border border-[var(--hairline)] bg-[var(--surface-card)] p-4.5 lg:p-5 shadow-[var(--paper-shadow)] transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+                      className={`w-[430px] lg:w-[520px] xl:w-[560px] rounded-[28px] border border-[var(--hairline)] bg-[var(--surface-card)] p-5.5 lg:p-7 shadow-[var(--paper-shadow)] transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
                         isRtl ? 'text-right' : 'text-left'
                       }`}
                       style={{
@@ -395,14 +395,14 @@ export const SceneExperiences: React.FC<SceneExperiencesProps> = ({
                         pointerEvents: reachedStations[idx] ? 'auto' : 'none',
                       }}
                     >
-                      <div className="flex items-center justify-between gap-3 mb-1.5">
+                      <div className="flex items-center justify-between gap-3 mb-2">
                         <div className="flex items-center gap-1.5" aria-hidden="true">
                           {[0, 1, 2, 3, 4].map((dotIdx) => (
                             <span
                               key={dotIdx}
                               className="h-2 rounded-full transition-all"
                               style={{
-                                width: dotIdx === idx ? '18px' : '7px',
+                                width: dotIdx === idx ? '20px' : '8px',
                                 backgroundColor: dotIdx === idx ? st.color : 'rgba(166,139,200,0.28)',
                               }}
                             />
@@ -410,7 +410,7 @@ export const SceneExperiences: React.FC<SceneExperiencesProps> = ({
                         </div>
                         <span
                           dir="ltr"
-                          className="text-[11px] font-bold uppercase tracking-[0.14em]"
+                          className="text-xs lg:text-[13px] font-bold uppercase tracking-[0.14em]"
                           style={{ color: st.color }}
                         >
                           {st.company}
@@ -419,7 +419,7 @@ export const SceneExperiences: React.FC<SceneExperiencesProps> = ({
 
                       <h3
                         dir="ltr"
-                        className={`font-display text-[15px] lg:text-[17px] font-semibold leading-snug text-[var(--ink-primary)] ${
+                        className={`font-display text-lg lg:text-[22px] font-semibold leading-snug text-[var(--ink-primary)] ${
                           isRtl ? 'text-right' : 'text-left'
                         }`}
                       >
@@ -427,15 +427,15 @@ export const SceneExperiences: React.FC<SceneExperiencesProps> = ({
                       </h3>
 
                       {/* 3 concise highlights directly on card */}
-                      <ul className="mt-3 space-y-1.5">
+                      <ul className="mt-4 space-y-2.5">
                         {st.achievements.slice(0, 3).map((ach, aIdx) => (
                           <li
                             key={`${st.id}-${aIdx}`}
-                            className="flex items-start gap-2 rounded-xl border border-[var(--hairline)] bg-[var(--surface-cream)]/75 px-3 py-1.5 text-xs leading-snug text-[var(--ink-primary)]"
+                            className="flex items-start gap-2.5 rounded-xl border border-[var(--hairline)] bg-[var(--surface-cream)]/75 px-3.5 py-2.5 text-[13px] lg:text-[15px] leading-snug text-[var(--ink-primary)]"
                           >
                             <span
                               dir="ltr"
-                              className="shrink-0 rounded-md px-2 py-0.5 text-[10.5px] font-bold text-[#2D2140]"
+                              className="shrink-0 rounded-md px-2.5 py-0.5 text-[11px] lg:text-xs font-bold text-[#2D2140]"
                               style={{ backgroundColor: st.softColor }}
                             >
                               {ach.badge}
@@ -445,12 +445,12 @@ export const SceneExperiences: React.FC<SceneExperiencesProps> = ({
                         ))}
                       </ul>
 
-                      <div className="mt-3.5 flex justify-end">
+                      <div className="mt-5 flex justify-end">
                         <button
                           type="button"
                           onClick={() => openDetailsPopup(st)}
                           dir="ltr"
-                          className="rounded-full bg-[#2D2140] px-4.5 py-2 text-xs font-semibold text-[#F5EFE0] hover:bg-[#41305C] dark:bg-[#A68BC8] dark:text-[#1A1328] whitespace-nowrap shrink-0 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#A68BC8]"
+                          className="rounded-full bg-[#2D2140] px-5 py-2.5 text-xs lg:text-sm font-semibold text-[#F5EFE0] hover:bg-[#41305C] dark:bg-[#A68BC8] dark:text-[#1A1328] whitespace-nowrap shrink-0 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#A68BC8]"
                         >
                           {copy.openFile[lang]}
                         </button>
@@ -496,9 +496,9 @@ export const SceneExperiences: React.FC<SceneExperiencesProps> = ({
                     )}
                   </div>
 
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3.5">
                     <div
-                      className={`h-13 w-13 shrink-0 rounded-full border-2 overflow-hidden ${
+                      className={`h-14 w-14 shrink-0 rounded-full border-2 overflow-hidden ${
                         st.darkLogoBg ? 'bg-[#14161A] p-0' : 'bg-white p-1'
                       }`}
                       style={{ borderColor: st.color }}
@@ -518,12 +518,12 @@ export const SceneExperiences: React.FC<SceneExperiencesProps> = ({
                       )}
                     </div>
                     <div>
-                      <div dir="ltr" className="text-[11px] font-bold uppercase tracking-wider" style={{ color: st.color }}>
+                      <div dir="ltr" className="text-xs font-bold uppercase tracking-wider" style={{ color: st.color }}>
                         {st.company}
                       </div>
                       <h3
                         dir="ltr"
-                        className={`font-display text-sm sm:text-base font-semibold text-[var(--ink-primary)] ${
+                        className={`font-display text-base sm:text-lg font-semibold text-[var(--ink-primary)] ${
                           isRtl ? 'text-right' : 'text-left'
                         }`}
                       >
@@ -532,15 +532,15 @@ export const SceneExperiences: React.FC<SceneExperiencesProps> = ({
                     </div>
                   </div>
 
-                  <ul className="mt-3 space-y-1.5">
+                  <ul className="mt-3.5 space-y-2">
                     {st.achievements.slice(0, 3).map((ach, aIdx) => (
                       <li
                         key={`${st.id}-m-${aIdx}`}
-                        className="flex items-start gap-2 rounded-xl border border-[var(--hairline)] bg-[var(--surface-cream)]/75 px-3 py-1.5 text-xs leading-snug text-[var(--ink-primary)]"
+                        className="flex items-start gap-2.5 rounded-xl border border-[var(--hairline)] bg-[var(--surface-cream)]/75 px-3.5 py-2 text-[13px] sm:text-sm leading-snug text-[var(--ink-primary)]"
                       >
                         <span
                           dir="ltr"
-                          className="shrink-0 rounded-md px-2 py-0.5 text-[10.5px] font-bold text-[#2D2140]"
+                          className="shrink-0 rounded-md px-2 py-0.5 text-[11px] font-bold text-[#2D2140]"
                           style={{ backgroundColor: st.softColor }}
                         >
                           {ach.badge}
@@ -550,12 +550,12 @@ export const SceneExperiences: React.FC<SceneExperiencesProps> = ({
                     ))}
                   </ul>
 
-                  <div className="mt-3.5 flex justify-end">
+                  <div className="mt-4 flex justify-end">
                     <button
                       type="button"
                       onClick={() => openDetailsPopup(st)}
                       dir="ltr"
-                      className="rounded-full bg-[#2D2140] px-4.5 py-2 text-xs font-semibold text-[#F5EFE0] dark:bg-[#A68BC8] dark:text-[#1A1328]"
+                      className="rounded-full bg-[#2D2140] px-5 py-2.5 text-xs sm:text-sm font-semibold text-[#F5EFE0] dark:bg-[#A68BC8] dark:text-[#1A1328]"
                     >
                       {copy.openFile[lang]}
                     </button>
